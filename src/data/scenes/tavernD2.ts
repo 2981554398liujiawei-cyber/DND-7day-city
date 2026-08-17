@@ -100,11 +100,13 @@ export const tavernD2Scenes: Scene[] = [
       {
         id: "tavern_d2_002_b",
         text: "在这里休息到夜晚，再作打算。",
+        conditions: [
+          { type: "periodIn", in: ["d2_morning", "d2_afternoon", "d2_dusk"] },
+        ],
         outcome: {
           text: "你在酒馆的角落里靠着墙坐下。窗外的灯火在雾气里晕开，像一整座城在做同一个梦。你闭上眼，等着夜色彻底降临。",
           effects: [
-            { type: "advanceTime" },
-            { type: "advanceTime" },
+            { type: "advanceToNight" },
             { type: "setScene", id: "location_hub" },
           ],
         },

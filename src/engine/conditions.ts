@@ -1,4 +1,5 @@
 import type { Condition, GameStateData, PeriodKey } from "../types/game";
+import { canContract } from "./contract";
 
 const PERIODS: PeriodKey[] = [
   "d1_morning",
@@ -48,6 +49,8 @@ export function checkCondition(
       return (
         state.companions[cond.id]?.intimacy >= (cond.min ?? 0)
       );
+    case "contractReady":
+      return canContract(cond.id, state);
     case "contracted":
       return state.companions[cond.id]?.contracted === true;
     case "stat":

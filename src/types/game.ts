@@ -86,6 +86,7 @@ export type Condition =
   | { type: "trust"; id: CompanionId; min: number }
   | { type: "intimacy"; id: CompanionId; min: number }
   | { type: "contracted"; id: CompanionId }
+  | { type: "contractReady"; id: CompanionId }
   | { type: "stat"; stat: StatKey; min: number }
   | { type: "gold"; min: number }
   | { type: "alert"; min: number }
@@ -107,6 +108,7 @@ export type Effect =
   | { type: "joinParty"; id: CompanionId }
   | { type: "leaveParty"; id: CompanionId }
   | { type: "advanceTime" }
+  | { type: "advanceToNight" }
   | { type: "setLocation"; id: string }
   | { type: "setScene"; id: string }
   | { type: "setPersonalQuestComplete"; id: CompanionId; value: boolean };

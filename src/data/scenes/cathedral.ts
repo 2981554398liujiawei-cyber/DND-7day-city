@@ -123,6 +123,7 @@ export const cathedralScenes: Scene[] = [
             { type: "trust", id: "milena", amount: 8 },
             { type: "intimacy", id: "milena", amount: 3 },
             { type: "setFlag", key: "church_main_done", value: true },
+            { type: "recruit", id: "milena" },
             { type: "advanceTime" },
             { type: "setScene", id: "location_hub" },
           ],
@@ -136,6 +137,7 @@ export const cathedralScenes: Scene[] = [
           effects: [
             { type: "trust", id: "milena", amount: 5 },
             { type: "setFlag", key: "church_main_done", value: true },
+            { type: "recruit", id: "milena" },
             { type: "advanceTime" },
             { type: "setScene", id: "location_hub" },
           ],
@@ -149,6 +151,7 @@ export const cathedralScenes: Scene[] = [
           effects: [
             { type: "trust", id: "milena", amount: -3 },
             { type: "setFlag", key: "church_main_done", value: true },
+            { type: "recruit", id: "milena" },
             { type: "advanceTime" },
             { type: "setScene", id: "location_hub" },
           ],

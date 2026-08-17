@@ -120,6 +120,7 @@ export const blackStreetScenes: Scene[] = [
           effects: [
             { type: "addSecret", key: "royal_plan_destroy_dragon" },
             { type: "setFlag", key: "blackstreet_main_done", value: true },
+            { type: "recruit", id: "lia" },
             { type: "advanceTime" },
             { type: "setScene", id: "location_hub" },
           ],
@@ -134,6 +135,7 @@ export const blackStreetScenes: Scene[] = [
           effects: [
             { type: "trust", id: "lia", amount: -2 },
             { type: "setFlag", key: "blackstreet_main_done", value: true },
+            { type: "recruit", id: "lia" },
             { type: "advanceTime" },
             { type: "setScene", id: "location_hub" },
           ],
@@ -149,6 +151,7 @@ export const blackStreetScenes: Scene[] = [
             { type: "trust", id: "lia", amount: 3 },
             { type: "setFlag", key: "lia_agreed_talk", value: true },
             { type: "setFlag", key: "blackstreet_main_done", value: true },
+            { type: "recruit", id: "lia" },
             { type: "advanceTime" },
             { type: "setScene", id: "location_hub" },
           ],

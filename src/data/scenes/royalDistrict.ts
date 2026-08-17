@@ -122,6 +122,7 @@ export const royalDistrictScenes: Scene[] = [
             { type: "trust", id: "serena", amount: 8 },
             { type: "intimacy", id: "serena", amount: 2 },
             { type: "setFlag", key: "royal_main_done", value: true },
+            { type: "recruit", id: "serena" },
             { type: "advanceTime" },
             { type: "setScene", id: "location_hub" },
           ],
@@ -135,6 +136,7 @@ export const royalDistrictScenes: Scene[] = [
           effects: [
             { type: "trust", id: "serena", amount: 4 },
             { type: "setFlag", key: "royal_main_done", value: true },
+            { type: "recruit", id: "serena" },
             { type: "advanceTime" },
             { type: "setScene", id: "location_hub" },
           ],
@@ -149,6 +151,7 @@ export const royalDistrictScenes: Scene[] = [
             { type: "trust", id: "serena", amount: -2 },
             { type: "intimacy", id: "serena", amount: -2 },
             { type: "setFlag", key: "royal_main_done", value: true },
+            { type: "recruit", id: "serena" },
             { type: "advanceTime" },
             { type: "setScene", id: "location_hub" },
           ],

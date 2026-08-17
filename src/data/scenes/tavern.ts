@@ -74,11 +74,13 @@ export const tavernScenes: Scene[] = [
       {
         id: "tavern_002_b",
         text: "在这里休息到夜晚，再作打算。",
+        conditions: [
+          { type: "periodIn", in: ["d1_morning", "d1_afternoon", "d1_dusk", "d2_morning", "d2_afternoon", "d2_dusk"] },
+        ],
         outcome: {
           text: "你干脆在酒馆住下，养足精神。窗外，阿斯特拉的灯火依然不灭——只是你不知道，这份光明还能维持多久。",
           effects: [
-            { type: "advanceTime" },
-            { type: "advanceTime" },
+            { type: "advanceToNight" },
             { type: "setScene", id: "location_hub" },
           ],
         },

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import { ALL_SCENES } from "../data/scenes";
-import { getAvailableChoices, resolveChoice } from "../engine/sceneEngine";
+import { getAvailableChoices, resolveChoice, gradeRollForChoice } from "../engine/sceneEngine";
 import { getScene } from "../data/scenes";
 import type { GameStateData, Choice } from "../types/game";
 import { ORIGINS } from "../data/companions";
@@ -85,11 +85,13 @@ describe("store 集成流程", () => {
       } else if (st.currentSceneId === "tavern_001") {
         click("tavern_001_c");
       } else if (st.currentSceneId === "tavern_002") {
-        click("tavern_002_b");
+        const isNight = st.periodIndex === PERIOD_ORDER.indexOf("d1_night") || st.periodIndex === PERIOD_ORDER.indexOf("d2_night");
+        click(isNight ? "tavern_002_a" : "tavern_002_b");
       } else if (st.currentSceneId === "tavern_d2_001") {
         click("tavern_d2_001_e");
       } else if (st.currentSceneId === "tavern_d2_002") {
-        click("tavern_d2_002_b");
+        const isNight = st.periodIndex === PERIOD_ORDER.indexOf("d1_night") || st.periodIndex === PERIOD_ORDER.indexOf("d2_night");
+        click(isNight ? "tavern_d2_002_a" : "tavern_d2_002_b");
       } else {
         throw new Error(`pushToFinale 意外场景 ${st.currentSceneId}`);
       }
@@ -161,6 +163,46 @@ describe("store 集成流程", () => {
     useGameStore.getState().gotoScene(out.nextSceneId!);
     expect(useGameStore.getState().state!.currentSceneId).toBe("intro_002");
   });
+
+  it("RC1 Phase1：做完黑街后可招募第二名伙伴，双人可换人并重新加入", () => {
+    useGameStore.getState().newGame("测试者", "mercenary");
+    // 开场选塞蕾娜
+    click("intro_001_c");
+    click("intro_002_a");
+    click("intro_003_a");
+    click("intro_004_a");
+    let s = useGameStore.getState().state!;
+    expect(s.party).toEqual(["serena"]);
+    expect(s.companions.lia.recruited).toBe(false);
+
+    // 黑街主线完成 → 莉娅被正式招募并自动入队（party 有空位）→ 双人 party
+    click("hub_blackstreet_d1");
+    click("blackstreet_001_a");
+    click("blackstreet_002_a");
+    s = useGameStore.getState().state!;
+    expect(s.companions.lia.recruited).toBe(true);
+    expect(s.party).toContain("serena");
+    expect(s.party).toContain("lia");
+    expect(s.party.length).toBe(2);
+
+    // 王城主线（推进到 d1_night）
+    click("hub_royal_d1");
+    click("royal_001_a");
+    click("royal_002_a");
+
+    // 到夜晚营地 → 调整队伍：莉娅离队 → 重新入队
+    click("hub_camp_d1");
+    click("camp_night_party");
+    click("camp_leave_lia");
+    s = useGameStore.getState().state!;
+    expect(s.party).not.toContain("lia");
+    expect(s.party).toContain("serena");
+    click("camp_join_lia");
+    s = useGameStore.getState().state!;
+    expect(s.party).toContain("lia");
+    expect(s.party.length).toBe(2);
+    click("camp_select_party_done");
+  });
 });
 
 /**
@@ -203,7 +245,11 @@ function walk(
           const r = resolveChoice(c, state);
           state.currentSceneId = r.nextSceneId!;
         } else if (state.currentSceneId === "tavern_002" || state.currentSceneId === "tavern_d2_002") {
-          const c = hubChoices.find((c) => c.id === "tavern_002_b") ?? hubChoices.find((c) => c.id === "tavern_d2_002_b")!;
+          // 白天选"休息到夜晚"（advanceToNight），夜晚选"继续行动"（×1 到次日）
+          const isNight = state.periodIndex === PERIOD_ORDER.indexOf("d1_night") || state.periodIndex === PERIOD_ORDER.indexOf("d2_night");
+          const c = isNight
+            ? (hubChoices.find((c) => c.id === "tavern_002_a") ?? hubChoices.find((c) => c.id === "tavern_d2_002_a")!)
+            : (hubChoices.find((c) => c.id === "tavern_002_b") ?? hubChoices.find((c) => c.id === "tavern_d2_002_b")!);
           const r = resolveChoice(c, state);
           state.currentSceneId = r.nextSceneId!;
         } else {
@@ -333,14 +379,19 @@ describe("通关模拟", () => {
       "camp_night_lia",
       "lia_personal_001_a",
       "companion_event_end_a",
-      // 第二关系事件
+      // 休息 → DAY2 上午
+      "camp_night_rest",
+      // 酒馆 D2：休息到夜晚（→ d2_night）
+      "hub_tavern_d2",
+      "tavern_d2_001_e",
+      "tavern_d2_002_b",
+      // 夜晚营地：第二关系事件
+      "hub_camp_d2",
       "camp_night_lia_rel2",
       "lia_rel2_001_a",
       "companion_event_end_a",
-      // 休息推进到 DAY2
+      // 休息 → finale
       "camp_night_rest",
-      // 推进到 finale
-      "PUSH_TIME",
       "hub_finale",
       "finale_royal_hunt",
       "ending_royal_continue",
@@ -407,16 +458,22 @@ describe("通关模拟", () => {
       "camp_night_serena",
       "serena_personal_001_a",
       "companion_event_end_a", // 回营地
-      "camp_night_serena_rel2", // 第二关系事件（+12 → 49）
+      // 休息 → DAY2 上午
+      "camp_night_rest",
+      // 酒馆 D2：休息到夜晚（advanceToNight → d2_night）
+      "hub_tavern_d2",
+      "tavern_d2_001_e",
+      "tavern_d2_002_b",
+      // 夜晚营地：第二关系事件（+12 → 49）+ 契约
+      "hub_camp_d2",
+      "camp_night_serena_rel2",
       "serena_rel2_001_a",
       "companion_event_end_a", // 回营地
       "camp_night_serena_contract", // 契约
       "serena_contract_001_a",
       "companion_event_end_a", // 回营地
-      // 休息推进时间
+      // 休息 → finale
       "camp_night_rest",
-      // 到 finale
-      "PUSH_TIME",
       "hub_finale",
       "finale_return_egg",
       "ending_return_egg_continue",
@@ -473,21 +530,40 @@ describe("通关模拟", () => {
     expect(campChoices.some((c) => c.id === "camp_night_serena")).toBe(true);
   });
 
-  it("Route F：Failure Run —— 多次主动失败后仍能通关", () => {
+  it("Route F：Failure Run —— 至少 5 次真实失败（含 3 次 DAY2 danger）仍能通关", () => {
     const s = makeState();
     const path = [
       "intro_001_c",
       "intro_002_a",
       "intro_003_a",
       "intro_004_a",
-      // 黑街：选检定选项（强制失败）
+      // DAY1 失败 #1：黑街潜入窃听
       "hub_blackstreet_d1",
-      "blackstreet_001_b", // 潜入窃听（失败 → 无秘密，也无地下线索）
+      "FORCE_FAIL",
+      "blackstreet_001_b",
       "blackstreet_002_a",
-      // 王城：检定选项强制失败
+      // DAY1 失败 #2：王城打听密令
       "hub_royal_d1",
-      "royal_001_a", // 打听密令（失败）
+      "FORCE_FAIL",
+      "royal_001_a",
       "royal_002_a",
+      // 过夜到 DAY2
+      "hub_camp_d1",
+      "camp_night_rest",
+      // DAY2 danger 失败 #3：黑街帮派暴乱（combat）
+      "hub_blackstreet_d2",
+      "blackstreet_d2_001_a",
+      "FORCE_FAIL",
+      "blackstreet_d2_danger_a",
+      // DAY2 danger 失败 #4：王城骑士封锁（combat）
+      "hub_royal_d2",
+      "royal_d2_001_a",
+      "FORCE_FAIL",
+      "royal_d2_danger_a",
+      // DAY2 danger 失败 #5：圣堂焚卷（stealth）
+      "hub_church_d2",
+      "FORCE_FAIL",
+      "church_d2_001_b",
       // 推进时间到 finale
       "PUSH_TIME",
       // 最终：默认王室路线（无秘密也有选项）
@@ -495,14 +571,92 @@ describe("通关模拟", () => {
       "finale_royal_hunt",
       "ending_royal_continue",
     ];
-    // 强制所有检定失败（random 返回 0 → 骰子 0+0+修正 < 6）
-    vi.spyOn(Math, "random").mockReturnValue(0.001);
     const { state: final, visited } = walk(s, path, { forceSuccess: false });
-    vi.restoreAllMocks();
     expect(final.currentSceneId).toBe("ending_screen");
     expect(visited).toContain("ending_royal");
-    // 失败后秘密很少，但游戏仍可完成
+    // 一路失败：秘密很少、警戒升高，但游戏仍可完成
     expect(final.secrets.length).toBeLessThan(4);
+    expect(final.alert).toBeGreaterThan(0);
+  });
+
+  it("RC1 Phase2：finale 时段 hub_underground 不可用，hub_finale 可用", () => {
+    const s = makeState();
+    s.periodIndex = PERIOD_ORDER.indexOf("finale");
+    s.flags.underground_hint = true;
+    s.flags.underground_main_done = false;
+    const choices = getAvailableChoices("location_hub", s);
+    expect(choices.some((c) => c.id === "hub_finale")).toBe(true);
+    expect(choices.some((c) => c.id === "hub_underground")).toBe(false);
+    // 其他调查入口在 finale 也不可用
+    expect(choices.some((c) => c.id === "hub_blackstreet_d1")).toBe(false);
+    expect(choices.some((c) => c.id === "hub_royal_d2")).toBe(false);
+  });
+
+  it("RC1 Phase2：休息到夜晚不会越过当晚（d2_dusk → d2_night）", () => {
+    const s = makeState();
+    s.periodIndex = PERIOD_ORDER.indexOf("d2_dusk");
+    s.currentSceneId = "tavern_d2_002";
+    const choices = getAvailableChoices("tavern_d2_002", s);
+    const b = choices.find((c) => c.id === "tavern_d2_002_b");
+    expect(b).toBeTruthy();
+    resolveChoice(b!, s);
+    expect(s.periodIndex).toBe(PERIOD_ORDER.indexOf("d2_night"));
+  });
+
+  it("RC1 Phase3：龙之契约失败后 finale 不再出现该选项（不能无限刷）", () => {
+    const s = makeState();
+    s.periodIndex = PERIOD_ORDER.indexOf("finale");
+    s.secrets = ["milena_connected_to_egg"];
+    s.flags.bonded_with_egg = true;
+    s.companions.milena.met = true;
+    s.companions.milena.recruited = true;
+    s.party = ["milena"];
+    s.currentSceneId = "finale_001";
+    // 首次：选项可用
+    let choices = getAvailableChoices("finale_001", s);
+    expect(choices.some((c) => c.id === "finale_dragon_contract")).toBe(true);
+    // 进入尝试场景，检定失败
+    useGameStore.getState().selectChoice(choices.find((c) => c.id === "finale_dragon_contract")!);
+    const out = useGameStore.getState().outcome!;
+    useGameStore.getState().gotoScene(out.nextSceneId!);
+    const st = useGameStore.getState().state!;
+    const attempt = getAvailableChoices(st.currentSceneId, st).find(
+      (c) => c.id === "finale_dragon_contract_attempt_a"
+    )!;
+    vi.spyOn(Math, "random").mockReturnValue(0.001); // 失败
+    useGameStore.getState().selectChoice(attempt);
+    useGameStore.getState().acceptOutcome();
+    vi.restoreAllMocks();
+    const out2 = useGameStore.getState().outcome!;
+    expect(out2.nextSceneId).toBe("finale_001");
+    useGameStore.getState().gotoScene("finale_001");
+    // 失败后：契约选项消失，其他结局保留
+    const s2 = useGameStore.getState().state!;
+    choices = getAvailableChoices("finale_001", s2);
+    expect(choices.some((c) => c.id === "finale_dragon_contract")).toBe(false);
+    expect(choices.some((c) => c.id === "finale_royal_hunt")).toBe(true);
+  });
+
+  it("RC1 Phase4：警戒 ≥15 时黑街 D2 stealth 检定 modifier -1", () => {
+    // alert 15 → -1
+    const s1 = makeState();
+    s1.alert = 15;
+    s1.currentSceneId = "blackstreet_d2_danger";
+    const stealth = getAvailableChoices("blackstreet_d2_danger", s1).find(
+      (c) => c.id === "blackstreet_d2_danger_b"
+    )!;
+    vi.spyOn(Math, "random").mockReturnValue(0.001).mockReturnValue(0.001);
+    const r1 = gradeRollForChoice(stealth, s1);
+    vi.restoreAllMocks();
+    expect(r1.modifier).toBe(-1);
+    // alert 14 → 0（不触发）
+    const s2 = makeState();
+    s2.alert = 14;
+    s2.currentSceneId = "blackstreet_d2_danger";
+    vi.spyOn(Math, "random").mockReturnValue(0.001).mockReturnValue(0.001);
+    const r2 = gradeRollForChoice(stealth, s2);
+    vi.restoreAllMocks();
+    expect(r2.modifier).toBe(0);
   });
 
   it("龙之契约失败：意志检定失败后仍可走其他结局（不死路）", () => {

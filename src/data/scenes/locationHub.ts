@@ -50,6 +50,7 @@ export const locationHubScenes: Scene[] = [
         id: "hub_underground",
         text: "前往地下魔力核心。",
         conditions: [
+          { type: "periodIn", in: ["d1_afternoon", "d1_dusk", "d1_night", "d2_morning", "d2_afternoon", "d2_dusk", "d2_night"] },
           { type: "flag", key: "underground_hint", value: true },
           { type: "flag", key: "underground_main_done", value: false },
         ],

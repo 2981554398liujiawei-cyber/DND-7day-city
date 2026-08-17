@@ -52,6 +52,7 @@ export const finaleScenes: Scene[] = [
           { type: "secret", key: "milena_connected_to_egg" },
           { type: "flag", key: "bonded_with_egg", value: true },
           { type: "companionInParty", id: "milena" },
+          { type: "flag", key: "dragon_contract_attempted", value: false },
         ],
         outcome: {
           nextScene: "finale_dragon_contract_attempt",
@@ -85,6 +86,7 @@ export const finaleScenes: Scene[] = [
         success: {
           text: "你的意志如钢般稳固。古龙的目光从审视变为接纳——它低下头，与你立下契约。当契约之光散尽，你感到米蕾娜紧紧握住了你的手，她的眼里，是得偿所愿的明亮的光。",
           effects: [
+            { type: "setFlag", key: "dragon_contract_attempted", value: true },
             { type: "setFlag", key: "dragon_contract_made", value: true },
           ],
           nextScene: "ending_dragon_contract",
@@ -92,6 +94,7 @@ export const finaleScenes: Scene[] = [
         partial: {
           text: "古龙的意志压得你膝盖发软，但你终究没有后退。契约成立，却带着代价——你的灵魂深处，留下了一道龙血的烙印。从此，龙卵继续运转城市，而你体内那股被强行引导的魔力，将永远伴随着你。",
           effects: [
+            { type: "setFlag", key: "dragon_contract_attempted", value: true },
             { type: "setFlag", key: "dragon_contract_made", value: true },
             { type: "corruption", amount: 15 },
           ],
@@ -100,6 +103,7 @@ export const finaleScenes: Scene[] = [
         failure: {
           text: "古龙的意志如潮水般吞没你。你踉跄后退，脸色惨白——契约无法成立。古龙失望地移开目光，缓缓退向天际。你回到城头，必须在剩下的选择里，重新决定这座城的命运。",
           effects: [
+            { type: "setFlag", key: "dragon_contract_attempted", value: true },
             { type: "corruption", amount: 5 },
           ],
           nextScene: "finale_001",
@@ -110,7 +114,9 @@ export const finaleScenes: Scene[] = [
         text: "放弃契约——你承受不住这股意志。",
         outcome: {
           text: "你退后一步，承认自己无法承担这样的重量。古龙没有为难你，只是垂下眼帘，缓缓退向天际。你回到城头，重新决定这座城的命运。",
-          effects: [],
+          effects: [
+            { type: "setFlag", key: "dragon_contract_attempted", value: true },
+          ],
           nextScene: "finale_001",
         },
       },

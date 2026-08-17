@@ -106,6 +106,19 @@ function applyEffect(e: Effect, state: GameStateData, logs: string[]) {
     case "advanceTime":
       state.periodIndex += 1;
       break;
+    case "advanceToNight": {
+      // 推进到当天夜晚：DAY1 → d1_night，DAY2 → d2_night；已在夜晚则不推进（交给营地休息）
+      const NIGHT1 = 3; // d1_night
+      const NIGHT2 = 7; // d2_night
+      const cur = state.periodIndex;
+      if (cur < NIGHT1) {
+        state.periodIndex = NIGHT1;
+      } else if (cur < NIGHT2) {
+        state.periodIndex = NIGHT2;
+      }
+      logs.push("🌙 天色暗了下来");
+      break;
+    }
     case "setLocation":
       state.location = e.id;
       break;
