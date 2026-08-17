@@ -24,7 +24,7 @@ export const introScenes: Scene[] = [
       {
         id: "intro_001_b",
         text: "走向占星师，追问龙的消息。",
-        check: { stat: "knowledge", modifier: 1 },
+        check: { stat: "knowledge", modifier: 1, tags: ["ancient"] },
         success: {
           text: "占星师眯眼打量你：“你很懂星象？”她压低声音，“那头龙不是普通野兽。它飞得很稳、很慢，像在找什么东西……这不像来毁城的架势。”",
           effects: [{ type: "setFlag", key: "heard_dragon_seeking", value: true }],

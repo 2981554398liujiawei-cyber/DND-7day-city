@@ -112,6 +112,13 @@ function applyEffect(e: Effect, state: GameStateData, logs: string[]) {
     case "setScene":
       state.currentSceneId = e.id;
       break;
+    case "setPersonalQuestComplete": {
+      const c = state.companions[e.id];
+      if (c) {
+        c.personalQuestComplete = e.value;
+      }
+      break;
+    }
     default:
       break;
   }

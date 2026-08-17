@@ -69,7 +69,7 @@ export interface GradeRoll {
   total: number;
 }
 
-/** 掷骰并返回分级结果（不应用效果） */
+/** 掷骰并返回分级结果（不应用效果）。学者对 ancient 检定 +1 */
 export function gradeRollForChoice(
   choice: Choice,
   state: GameStateData,
@@ -78,7 +78,12 @@ export function gradeRollForChoice(
 ): GradeRoll {
   const stat = overrideStat ?? choice.check!.stat;
   const statValue = state.player.stats[stat] ?? 0;
-  const modifier = (choice.check?.modifier ?? 0) + modifierDelta;
+  let modifier = (choice.check?.modifier ?? 0) + modifierDelta;
+  // 学者出身：带 ancient tag 的检定 +1
+  const tags = choice.check?.tags ?? [];
+  if (state.player.origin === "scholar" && tags.includes("ancient")) {
+    modifier += 1;
+  }
   const roll = rollCheck(statValue, modifier);
   return {
     grade: roll.grade,

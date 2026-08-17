@@ -43,8 +43,8 @@ export interface PendingCheck {
   roll: GradeRoll;
   usedGuardian: boolean;
   usedBlackCat: boolean;
-  usedReroll: boolean;
-  forbiddenUsed: boolean;
+  usedForbidden: boolean;
+  usedOriginReroll: boolean;
 }
 
 interface GameStore {
@@ -69,6 +69,7 @@ interface GameStore {
   useGuardian: () => void;
   useBlackCat: () => void;
   useForbiddenExchange: () => void;
+  useOriginReroll: () => void;
   gotoScene: (sceneId: string) => void;
 }
 
@@ -95,6 +96,18 @@ function loadSave(): GameStateData | null {
 
 function log(state: GameStateData, msg: string) {
   pushHistory(state, msg);
+}
+
+/** 出身重掷是否可用且未使用 */
+function originRerollAvailable(state: GameStateData, choice: Choice): boolean {
+  const tags = choice.check?.tags ?? [];
+  if (state.player.origin === "mercenary" && tags.includes("combat")) {
+    return !state.flags.origin_reroll_used;
+  }
+  if (state.player.origin === "trickster" && tags.includes("social")) {
+    return !state.flags.origin_reroll_used;
+  }
+  return false;
 }
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -130,7 +143,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!st) return;
 
     if (choice.check) {
-      // 有检定：先掷骰，进入 pending（等待玩家决定是否用伙伴能力）
+      // 有检定：先掷骰，进入 pending（等待玩家决定是否用伙伴/出身能力）
       const roll = gradeRollForChoice(choice, st);
       set({
         pending: {
@@ -138,8 +151,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
           roll,
           usedGuardian: false,
           usedBlackCat: false,
-          usedReroll: false,
-          forbiddenUsed: false,
+          usedForbidden: false,
+          usedOriginReroll: false,
         },
         outcome: null,
       });
@@ -215,6 +228,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const pc = get().pending;
     if (!st || !pc) return;
     if (!st.party.includes("serena") || pc.usedGuardian) return;
+    // 守护：仅 combat 检定，且仅失败时可用
+    const tags = pc.choice.check?.tags ?? [];
+    if (!tags.includes("combat")) return;
     if (pc.roll.grade !== "failure") return;
     // 守护：失败 → 部分成功
     const newRoll: GradeRoll = { ...pc.roll, grade: "partial" };
@@ -226,7 +242,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const pc = get().pending;
     if (!st || !pc) return;
     if (!st.party.includes("lia") || pc.usedBlackCat) return;
-    if (pc.roll.grade !== "failure" && pc.roll.grade !== "partial") return;
+    // 黑猫：仅 stealth 检定，且失败时重掷一次
+    const tags = pc.choice.check?.tags ?? [];
+    if (!tags.includes("stealth")) return;
+    if (pc.roll.grade !== "failure") return;
     // 黑猫：重掷一次
     const newRoll = gradeRollForChoice(pc.choice, st);
     set({ pending: { ...pc, roll: newRoll, usedBlackCat: true } });
@@ -236,7 +255,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const st = get().state;
     const pc = get().pending;
     if (!st || !pc) return;
-    if (!st.party.includes("milena") || pc.forbiddenUsed) return;
+    if (!st.party.includes("milena") || pc.usedForbidden) return;
     if (pc.roll.grade !== "failure" && pc.roll.grade !== "partial") return;
     // 禁忌交换：强制成功，腐化 +10
     st.corruption = Math.min(100, st.corruption + 10);
@@ -244,7 +263,24 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const newRoll: GradeRoll = { ...pc.roll, grade: "success" };
     set({
       state: st,
-      pending: { ...pc, roll: newRoll, forbiddenUsed: true },
+      pending: { ...pc, roll: newRoll, usedForbidden: true },
+    });
+  },
+
+  useOriginReroll: () => {
+    const st = get().state;
+    const pc = get().pending;
+    if (!st || !pc) return;
+    if (pc.usedOriginReroll) return;
+    if (!originRerollAvailable(st, pc.choice)) return;
+    // 出身重掷：仅失败时可用
+    if (pc.roll.grade !== "failure") return;
+    const newRoll = gradeRollForChoice(pc.choice, st);
+    st.flags.origin_reroll_used = true;
+    log(st, "出身能力已使用（本局一次）");
+    set({
+      state: st,
+      pending: { ...pc, roll: newRoll, usedOriginReroll: true },
     });
   },
 

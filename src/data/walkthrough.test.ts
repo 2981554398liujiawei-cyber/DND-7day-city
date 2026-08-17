@@ -5,6 +5,7 @@ import { getScene } from "../data/scenes";
 import type { GameStateData, Choice } from "../types/game";
 import { ORIGINS } from "../data/companions";
 import { useGameStore } from "../store/gameStore";
+import { PERIOD_ORDER } from "../data/time";
 
 function makeState(): GameStateData {
   return {
@@ -68,7 +69,29 @@ describe("store 集成流程", () => {
     }
   }
 
-  it("新游戏 → 完整通关（store 层）", () => {
+  /** 在 hub 反复去酒馆休息，直到时间推进到 finale */
+  function pushToFinale() {
+    let guard = 0;
+    while (useGameStore.getState().state!.periodIndex < PERIOD_ORDER.indexOf("finale")) {
+      guard++;
+      if (guard > 10) throw new Error("pushToFinale 死循环");
+      const st = useGameStore.getState().state!;
+      const choices = getAvailableChoices(st.currentSceneId, st);
+      if (st.currentSceneId === "location_hub") {
+        const t = choices.find((c) => c.id === "hub_tavern");
+        if (!t) throw new Error("hub 无酒馆选项，无法推进时间");
+        click("hub_tavern");
+      } else if (st.currentSceneId === "tavern_001") {
+        click("tavern_001_c");
+      } else if (st.currentSceneId === "tavern_002") {
+        click("tavern_002_b");
+      } else {
+        throw new Error(`pushToFinale 意外场景 ${st.currentSceneId}`);
+      }
+    }
+  }
+
+  it("新游戏 → 完整通关（store 层，时间线强制）", () => {
     useGameStore.getState().newGame("测试者", "mercenary");
     let s = useGameStore.getState().state!;
     expect(s.currentSceneId).toBe("intro_001");
@@ -82,8 +105,8 @@ describe("store 集成流程", () => {
     expect(s.currentSceneId).toBe("location_hub");
     expect(s.party).toContain("serena");
 
-    // 去黑街
-    click("hub_blackstreet");
+    // 去黑街（DAY1）
+    click("hub_blackstreet_d1");
     click("blackstreet_001_a");
     click("blackstreet_002_a");
     s = useGameStore.getState().state!;
@@ -96,7 +119,17 @@ describe("store 集成流程", () => {
     click("underground_002_a");
     s = useGameStore.getState().state!;
     expect(s.secrets).toContain("egg_is_power_source");
-    expect(s.flags.finale_unlocked).toBe(true);
+
+    // 此时不能在 finale 前直接进龙临（时间未到）
+    const preChoices = getAvailableChoices(s.currentSceneId, s);
+    expect(preChoices.some((c) => c.id === "hub_finale")).toBe(false);
+
+    // 推进时间到 finale 后，hub 出现 hub_finale
+    pushToFinale();
+    s = useGameStore.getState().state!;
+    expect(s.periodIndex).toBeGreaterThanOrEqual(PERIOD_ORDER.indexOf("finale"));
+    const finaleChoices = getAvailableChoices(s.currentSceneId, s);
+    expect(finaleChoices.some((c) => c.id === "hub_finale")).toBe(true);
 
     // 结局
     click("hub_finale");
@@ -128,6 +161,7 @@ describe("store 集成流程", () => {
 /**
  * 沿指定 choice id 路径游玩，直到进入 ending_screen。
  * 遇到 check 时用 fixed dice（total 恰好 success）。
+ * 特殊标记 "PUSH_TIME"：在 hub 反复去酒馆休息，直到时间推进到 finale。
  */
 function walk(
   state: GameStateData,
@@ -140,10 +174,39 @@ function walk(
   const visited: string[] = [];
   while (sceneId !== "ending_screen") {
     guard++;
-    if (guard > 200) throw new Error("walk 死循环");
+    if (guard > 300) throw new Error("walk 死循环");
     const scene = getScene(sceneId);
     visited.push(sceneId);
     const choices = getAvailableChoices(sceneId, state);
+
+    // PUSH_TIME：循环推进时间到 finale
+    if (path[idx] === "PUSH_TIME") {
+      idx++;
+      let pushGuard = 0;
+      while (state.periodIndex < PERIOD_ORDER.indexOf("finale")) {
+        pushGuard++;
+        if (pushGuard > 20) throw new Error("PUSH_TIME 死循环");
+        const hubChoices = getAvailableChoices(state.currentSceneId, state);
+        if (state.currentSceneId === "location_hub") {
+          const t = hubChoices.find((c) => c.id === "hub_tavern");
+          if (!t) throw new Error("PUSH_TIME: hub 无酒馆选项");
+          const r = resolveChoice(t, state);
+          state.currentSceneId = r.nextSceneId!;
+        } else if (state.currentSceneId === "tavern_001") {
+          const c = hubChoices.find((c) => c.id === "tavern_001_c")!;
+          const r = resolveChoice(c, state);
+          state.currentSceneId = r.nextSceneId!;
+        } else if (state.currentSceneId === "tavern_002") {
+          const c = hubChoices.find((c) => c.id === "tavern_002_b")!;
+          const r = resolveChoice(c, state);
+          state.currentSceneId = r.nextSceneId!;
+        } else {
+          throw new Error(`PUSH_TIME 意外场景 ${state.currentSceneId}`);
+        }
+      }
+      continue;
+    }
+
     const wanted = path[idx];
     let choice: Choice | undefined;
     if (wanted) {
@@ -188,22 +251,20 @@ describe("通关模拟", () => {
       "intro_002_a", // 表明契约者
       "intro_003_a", // 选塞蕾娜同行
       "intro_004_b", // 去王城区（推进时间，回 hub）
-      // 王城
-      "hub_royal",
+      // 王城 DAY1（推进到 d1_dusk）
+      "hub_royal_d1",
       "royal_001_c", // 观察塞蕾娜
       "royal_002_a", // 忠于荣誉
-      // 黑街
-      "hub_blackstreet",
+      // 黑街 DAY1（推进到 d1_night）
+      "hub_blackstreet_d1",
       "blackstreet_001_a", // 龙的消息 -> dragon_is_parent + underground_hint
       "blackstreet_002_a", // 记下情报
-      // 圣堂
-      "hub_church",
-      "church_001_a", // 撬铁柜
-      "church_002_a", // 握住她的手
-      // 地下
+      // 地下（d1_night 仍可前往）
       "hub_underground",
       "underground_001_a", // 凑近观察 -> egg_is_power_source
-      "underground_002_a", // 退出地下 -> finale_unlocked
+      "underground_002_a", // 退出地下
+      // 时间推进到 finale
+      "PUSH_TIME",
       // 最终
       "hub_finale",
       "finale_return_egg",
@@ -217,6 +278,25 @@ describe("通关模拟", () => {
     expect(visited).toContain("ending_return_egg");
   });
 
+  it("Route A2：不做任何调查也能通关（默认王室路线）", () => {
+    const s = makeState();
+    const path = [
+      "intro_001_a", // 直接相信占星师（不调查）
+      "intro_002_a",
+      "intro_003_a",
+      "intro_004_a",
+      // 推进时间到 finale
+      "PUSH_TIME",
+      // 最终（无秘密也有默认选项）
+      "hub_finale",
+      "finale_royal_hunt",
+      "ending_royal_continue",
+    ];
+    const { state: final, visited } = walk(s, path, { forceSuccess: true });
+    expect(final.currentSceneId).toBe("ending_screen");
+    expect(visited).toContain("ending_royal");
+  });
+
   it("Route C：偏米蕾娜 → 龙之契约（隐藏结局）", () => {
     const s = makeState();
     const path = [
@@ -224,18 +304,20 @@ describe("通关模拟", () => {
       "intro_002_c", // 认识米蕾娜
       "intro_003_c", // 选米蕾娜同行
       "intro_004_c", // 去圣堂
-      // 圣堂
-      "hub_church",
+      // 圣堂 DAY1
+      "hub_church_d1",
       "church_001_b", // 米蕾娜探查 -> milena_connected_to_egg_echo
       "church_002_a", // 握住她的手
-      // 黑街（地下线索）
-      "hub_blackstreet",
+      // 黑街 DAY1（地下线索）
+      "hub_blackstreet_d1",
       "blackstreet_001_d", // 打听地下入口 -> underground_hint
       "blackstreet_002_a",
       // 地下
       "hub_underground",
       "underground_001_b", // 问米蕾娜 -> milena_connected_to_egg
       "underground_002_b", // 尝试沟通 -> bonded_with_egg
+      // 时间推进到 finale
+      "PUSH_TIME",
       // 最终
       "hub_finale",
       "finale_dragon_contract",

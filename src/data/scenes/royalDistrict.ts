@@ -13,7 +13,7 @@ export const royalDistrictScenes: Scene[] = [
       {
         id: "royal_001_a",
         text: "让塞蕾娜试着打听那道密令的原文。",
-        check: { stat: "finesse", modifier: 0, companion: "serena" },
+        check: { stat: "finesse", modifier: 0, companion: "serena", tags: ["social"] },
         success: {
           text: "塞蕾娜借着老交情，从书记官手里瞥见了密令的一角：“……由『翼』统领屠龙阵，龙落即杀，不留活口。帝国不容一头龙威胁秩序。”她合上眼，“他们连谈都不打算谈。”",
           effects: [
@@ -44,7 +44,7 @@ export const royalDistrictScenes: Scene[] = [
       {
         id: "royal_001_b",
         text: "混入封锁线，接近王宫墙根。",
-        check: { stat: "agility", modifier: 0, companion: "lia" },
+        check: { stat: "agility", modifier: 0, companion: "lia", tags: ["stealth"] },
         success: {
           text: "你趁换岗的间隙溜到墙根，听见墙内一名军官压着嗓子说：“法师那套‘能源’快撑不住了，龙一落地就断。王上说了，杀了龙，一了百了。”",
           effects: [
@@ -73,7 +73,7 @@ export const royalDistrictScenes: Scene[] = [
       {
         id: "royal_001_c",
         text: "观察塞蕾娜面对这份军令时的神情。",
-        check: { stat: "insight", modifier: 0 },
+        check: { stat: "insight", modifier: 0, tags: ["social"] },
         success: {
           text: "塞蕾娜盯着那半张名单，指节微微发白。她低声说：“我宣誓保护民众，不是挥刀向一个……连它要什么都不知道的生命。”你看见她眼里第一次有了动摇。",
           effects: [

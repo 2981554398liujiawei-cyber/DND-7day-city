@@ -29,7 +29,17 @@ export function checkCondition(
     case "secret":
       return state.secrets.includes(cond.key);
     case "companionInParty":
+      if (cond.value === false) {
+        return !state.party.includes(cond.id);
+      }
       return state.party.includes(cond.id);
+    case "partyNotFull":
+      return state.party.length < 2;
+    case "personalQuestDone":
+      if (cond.value === false) {
+        return state.companions[cond.id]?.personalQuestComplete !== true;
+      }
+      return state.companions[cond.id]?.personalQuestComplete === true;
     case "trust":
       return (
         state.companions[cond.id]?.trust >= (cond.min ?? 0)
@@ -50,6 +60,8 @@ export function checkCondition(
       return state.corruption >= (cond.min ?? 0);
     case "period":
       return periodKey(state) === cond.at;
+    case "periodIn":
+      return cond.in.includes(periodKey(state));
     case "origin":
       return cond.in.includes(state.player.origin);
     default:

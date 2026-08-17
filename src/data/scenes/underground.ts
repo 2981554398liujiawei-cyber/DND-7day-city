@@ -15,7 +15,7 @@ export const undergroundScenes: Scene[] = [
       {
         id: "underground_001_a",
         text: "凑近观察龙卵与拘束装置。",
-        check: { stat: "knowledge", modifier: 1 },
+        check: { stat: "knowledge", modifier: 1, tags: ["ancient"] },
         success: {
           text: "你看出这套拘束装置的设计——它把龙卵当作一座永动的魔力炉，抽取它的生命维系全城。你甚至认出其中几道符文来自法师学院的标识。他们是主谋。",
           effects: [
@@ -62,7 +62,7 @@ export const undergroundScenes: Scene[] = [
       {
         id: "underground_001_c",
         text: "伸手触摸龙卵的卵壳。",
-        check: { stat: "will", modifier: 0 },
+        check: { stat: "will", modifier: 0, tags: ["ancient"] },
         success: {
           text: "指尖触及卵壳的一瞬，一股不属于你的、浩大的记忆涌进脑海：一道古龙的影子俯视大地，风沙里它低吼——『我的孩子……我来接你回家。』你猛地缩回手，几乎跪倒。你终于懂了：那头龙不是来毁城的。",
           effects: [
@@ -106,9 +106,8 @@ export const undergroundScenes: Scene[] = [
         id: "underground_002_a",
         text: "先退出地下，把这件事带出去再做打算。",
         outcome: {
-          text: "你们原路返回地面。龙卵的蓝光在身后缓缓熄灭，像一只合上的眼睛。你知道，明晚之前，你必须做出决定。",
+          text: "你们原路返回地面。龙卵的蓝光在身后缓缓熄灭，像一只合上的眼睛。你知道，在龙临之前，你必须做出决定。",
           effects: [
-            { type: "setFlag", key: "finale_unlocked", value: true },
             { type: "advanceTime" },
             { type: "setScene", id: "location_hub" },
           ],
@@ -117,12 +116,11 @@ export const undergroundScenes: Scene[] = [
       {
         id: "underground_002_b",
         text: "尝试用契约能力与龙卵沟通。",
-        check: { stat: "will", modifier: 1 },
+        check: { stat: "will", modifier: 1, tags: ["ancient"] },
         success: {
           text: "你闭上眼，将灵魂的触角探向那枚龙卵。它回应了你——不是语言，而是一道清晰的意念：『愿意的话，替我告诉我的母亲——这里的恩怨，我们自己了结。』你和龙卵，建立了一丝共鸣。",
           effects: [
             { type: "setFlag", key: "bonded_with_egg", value: true },
-            { type: "setFlag", key: "finale_unlocked", value: true },
             { type: "corruption", amount: 10 },
             { type: "advanceTime" },
             { type: "setScene", id: "location_hub" },
@@ -132,7 +130,6 @@ export const undergroundScenes: Scene[] = [
           text: "你试图沟通，却只感到一阵模糊的暖意与困倦。龙卵似乎对你不设防，但也无法清晰回应。你退开，心口却残留着一缕共鸣。",
           effects: [
             { type: "setFlag", key: "bonded_with_egg", value: true },
-            { type: "setFlag", key: "finale_unlocked", value: true },
             { type: "corruption", amount: 5 },
             { type: "advanceTime" },
             { type: "setScene", id: "location_hub" },
@@ -141,7 +138,6 @@ export const undergroundScenes: Scene[] = [
         failure: {
           text: "龙卵对陌生灵魂的触碰剧烈抗拒，一股大力将你震退。你踉跄站稳，感到一阵恶心。这次沟通失败了。",
           effects: [
-            { type: "setFlag", key: "finale_unlocked", value: true },
             { type: "corruption", amount: 5 },
             { type: "advanceTime" },
             { type: "setScene", id: "location_hub" },

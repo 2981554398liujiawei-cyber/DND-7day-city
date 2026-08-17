@@ -21,7 +21,7 @@ export const companionEventsScenes: Scene[] = [
             { type: "addSecret", key: "serena_disobeyed_order" },
             { type: "trust", id: "serena", amount: 10 },
             { type: "intimacy", id: "serena", amount: 4 },
-            { type: "setFlag", key: "serena_personal_done", value: true },
+            { type: "setPersonalQuestComplete", id: "serena", value: true },
           ],
           nextScene: "companion_event_end",
         },
@@ -34,7 +34,7 @@ export const companionEventsScenes: Scene[] = [
           effects: [
             { type: "addSecret", key: "serena_disobeyed_order" },
             { type: "trust", id: "serena", amount: 6 },
-            { type: "setFlag", key: "serena_personal_done", value: true },
+            { type: "setPersonalQuestComplete", id: "serena", value: true },
           ],
           nextScene: "companion_event_end",
         },
@@ -47,7 +47,7 @@ export const companionEventsScenes: Scene[] = [
           effects: [
             { type: "addSecret", key: "serena_disobeyed_order" },
             { type: "trust", id: "serena", amount: -6 },
-            { type: "setFlag", key: "serena_personal_done", value: true },
+            { type: "setPersonalQuestComplete", id: "serena", value: true },
           ],
           nextScene: "companion_event_end",
         },
@@ -74,7 +74,7 @@ export const companionEventsScenes: Scene[] = [
           effects: [
             { type: "trust", id: "lia", amount: 10 },
             { type: "intimacy", id: "lia", amount: 3 },
-            { type: "setFlag", key: "lia_personal_done", value: true },
+            { type: "setPersonalQuestComplete", id: "lia", value: true },
           ],
           nextScene: "companion_event_end",
         },
@@ -87,7 +87,7 @@ export const companionEventsScenes: Scene[] = [
           effects: [
             { type: "trust", id: "lia", amount: 6 },
             { type: "addSecret", key: "mages_experimented_on_egg" },
-            { type: "setFlag", key: "lia_personal_done", value: true },
+            { type: "setPersonalQuestComplete", id: "lia", value: true },
           ],
           nextScene: "companion_event_end",
         },
@@ -99,7 +99,7 @@ export const companionEventsScenes: Scene[] = [
           text: "莉娅的眼神彻底冷下来。她站起身，语气冰得像刀：“说得好。那你也别信我。”她转身走出账房，“天亮前，我会离开这座城市。”",
           effects: [
             { type: "trust", id: "lia", amount: -10 },
-            { type: "setFlag", key: "lia_personal_done", value: true },
+            { type: "setPersonalQuestComplete", id: "lia", value: true },
             { type: "setFlag", key: "lia_left", value: true },
           ],
           nextScene: "companion_event_end",
@@ -127,7 +127,7 @@ export const companionEventsScenes: Scene[] = [
           effects: [
             { type: "trust", id: "milena", amount: 10 },
             { type: "intimacy", id: "milena", amount: 4 },
-            { type: "setFlag", key: "milena_personal_done", value: true },
+            { type: "setPersonalQuestComplete", id: "milena", value: true },
           ],
           nextScene: "companion_event_end",
         },
@@ -140,7 +140,7 @@ export const companionEventsScenes: Scene[] = [
           effects: [
             { type: "trust", id: "milena", amount: 8 },
             { type: "addSecret", key: "milena_connected_to_egg" },
-            { type: "setFlag", key: "milena_personal_done", value: true },
+            { type: "setPersonalQuestComplete", id: "milena", value: true },
           ],
           nextScene: "companion_event_end",
         },
@@ -152,7 +152,7 @@ export const companionEventsScenes: Scene[] = [
           text: "米蕾娜沉默了很久，最后轻轻点头：“……好。谢谢你愿意对我说实话。比哄我开心，更让我安心。”",
           effects: [
             { type: "trust", id: "milena", amount: 4 },
-            { type: "setFlag", key: "milena_personal_done", value: true },
+            { type: "setPersonalQuestComplete", id: "milena", value: true },
           ],
           nextScene: "companion_event_end",
         },
@@ -171,7 +171,7 @@ export const companionEventsScenes: Scene[] = [
     ],
     location: "tavern",
     conditions: [
-      { type: "flag", key: "serena_personal_done", value: true },
+      { type: "personalQuestDone", id: "serena" },
       { type: "trust", id: "serena", min: 60 },
     ],
     choices: [
@@ -199,7 +199,7 @@ export const companionEventsScenes: Scene[] = [
     ],
     location: "blackstreet",
     conditions: [
-      { type: "flag", key: "lia_personal_done", value: true },
+      { type: "personalQuestDone", id: "lia" },
       { type: "trust", id: "lia", min: 60 },
     ],
     choices: [
@@ -226,7 +226,7 @@ export const companionEventsScenes: Scene[] = [
     ],
     location: "church",
     conditions: [
-      { type: "flag", key: "milena_personal_done", value: true },
+      { type: "personalQuestDone", id: "milena" },
       { type: "trust", id: "milena", min: 60 },
     ],
     choices: [

@@ -90,12 +90,15 @@ describe("剧情数据完整性", () => {
 
   it("条件过滤基本工作（hub 场景）", () => {
     const s = makeState();
+    s.periodIndex = 0; // d1_morning
     const scene = SCENE_MAP["location_hub"];
     const choices = getAvailableChoices("location_hub", s);
-    // 黑街主线未完成时可用
-    expect(choices.some((c) => c.id === "hub_blackstreet")).toBe(true);
+    // DAY1 黑街主线未完成时可用
+    expect(choices.some((c) => c.id === "hub_blackstreet_d1")).toBe(true);
     // 地下未解锁时不可用
     expect(choices.some((c) => c.id === "hub_underground")).toBe(false);
+    // finale 未到时不可用
+    expect(choices.some((c) => c.id === "hub_finale")).toBe(false);
     void scene;
     void checkConditions;
   });

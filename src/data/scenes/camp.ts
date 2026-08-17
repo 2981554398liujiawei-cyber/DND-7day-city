@@ -15,7 +15,7 @@ export const campScenes: Scene[] = [
         text: "与塞蕾娜聊聊。",
         conditions: [
           { type: "companionInParty", id: "serena" },
-          { type: "flag", key: "serena_personal_done", value: false },
+          { type: "personalQuestDone", id: "serena", value: false },
         ],
         outcome: { nextScene: "serena_personal_001" },
       },
@@ -24,7 +24,7 @@ export const campScenes: Scene[] = [
         text: "与塞蕾娜讨论契约之事。",
         conditions: [
           { type: "companionInParty", id: "serena" },
-          { type: "flag", key: "serena_personal_done", value: true },
+          { type: "personalQuestDone", id: "serena" },
           { type: "trust", id: "serena", min: 60 },
           { type: "flag", key: "serena_contracted_event", value: false },
         ],
@@ -35,7 +35,7 @@ export const campScenes: Scene[] = [
         text: "与莉娅聊聊。",
         conditions: [
           { type: "companionInParty", id: "lia" },
-          { type: "flag", key: "lia_personal_done", value: false },
+          { type: "personalQuestDone", id: "lia", value: false },
         ],
         outcome: { nextScene: "lia_personal_001" },
       },
@@ -44,7 +44,7 @@ export const campScenes: Scene[] = [
         text: "与莉娅讨论契约之事。",
         conditions: [
           { type: "companionInParty", id: "lia" },
-          { type: "flag", key: "lia_personal_done", value: true },
+          { type: "personalQuestDone", id: "lia" },
           { type: "trust", id: "lia", min: 60 },
           { type: "flag", key: "lia_contracted_event", value: false },
         ],
@@ -55,7 +55,7 @@ export const campScenes: Scene[] = [
         text: "与米蕾娜聊聊。",
         conditions: [
           { type: "companionInParty", id: "milena" },
-          { type: "flag", key: "milena_personal_done", value: false },
+          { type: "personalQuestDone", id: "milena", value: false },
         ],
         outcome: { nextScene: "milena_personal_001" },
       },
@@ -64,7 +64,7 @@ export const campScenes: Scene[] = [
         text: "与米蕾娜讨论契约之事。",
         conditions: [
           { type: "companionInParty", id: "milena" },
-          { type: "flag", key: "milena_personal_done", value: true },
+          { type: "personalQuestDone", id: "milena" },
           { type: "trust", id: "milena", min: 60 },
           { type: "flag", key: "milena_contracted_event", value: false },
         ],
@@ -99,22 +99,11 @@ export const campScenes: Scene[] = [
     choices: [
       {
         id: "camp_join_serena",
-        text: "让塞蕾娜加入队伍。",
+        text: "【塞蕾娜】让她加入队伍。",
         conditions: [
           { type: "flag", key: "recruited_serena_flag", value: true },
-          { type: "companionInParty", id: "serena" },
-        ],
-        outcome: {
-          text: "塞蕾娜已经在队伍中了。",
-          nextScene: "camp_select_party",
-        },
-      },
-      {
-        id: "camp_join_serena_empty",
-        text: "【塞蕾娜】让塞蕾娜加入队伍。",
-        conditions: [
-          { type: "flag", key: "recruited_serena_flag", value: true },
-          { type: "companionInParty", id: "serena" },
+          { type: "companionInParty", id: "serena", value: false },
+          { type: "partyNotFull" },
         ],
         outcome: {
           effects: [{ type: "joinParty", id: "serena" }],
@@ -132,22 +121,11 @@ export const campScenes: Scene[] = [
       },
       {
         id: "camp_join_lia",
-        text: "让莉娅加入队伍。",
+        text: "【莉娅】让她加入队伍。",
         conditions: [
           { type: "flag", key: "recruited_lia_flag", value: true },
-          { type: "companionInParty", id: "lia" },
-        ],
-        outcome: {
-          text: "莉娅已经在队伍中了。",
-          nextScene: "camp_select_party",
-        },
-      },
-      {
-        id: "camp_join_lia_empty",
-        text: "【莉娅】让莉娅加入队伍。",
-        conditions: [
-          { type: "flag", key: "recruited_lia_flag", value: true },
-          { type: "companionInParty", id: "lia" },
+          { type: "companionInParty", id: "lia", value: false },
+          { type: "partyNotFull" },
         ],
         outcome: {
           effects: [{ type: "joinParty", id: "lia" }],
@@ -165,22 +143,11 @@ export const campScenes: Scene[] = [
       },
       {
         id: "camp_join_milena",
-        text: "让米蕾娜加入队伍。",
+        text: "【米蕾娜】让她加入队伍。",
         conditions: [
           { type: "flag", key: "recruited_milena_flag", value: true },
-          { type: "companionInParty", id: "milena" },
-        ],
-        outcome: {
-          text: "米蕾娜已经在队伍中了。",
-          nextScene: "camp_select_party",
-        },
-      },
-      {
-        id: "camp_join_milena_empty",
-        text: "【米蕾娜】让米蕾娜加入队伍。",
-        conditions: [
-          { type: "flag", key: "recruited_milena_flag", value: true },
-          { type: "companionInParty", id: "milena" },
+          { type: "companionInParty", id: "milena", value: false },
+          { type: "partyNotFull" },
         ],
         outcome: {
           effects: [{ type: "joinParty", id: "milena" }],

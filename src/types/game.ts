@@ -8,6 +8,8 @@ export type StatKey =
   | "finesse"
   | "will";
 
+export type CheckTag = "combat" | "stealth" | "social" | "ancient";
+
 export type Stats = Record<StatKey, number>;
 
 export type PeriodKey =
@@ -78,7 +80,9 @@ export interface CompanionDef {
 export type Condition =
   | { type: "flag"; key: string; value: boolean }
   | { type: "secret"; key: string }
-  | { type: "companionInParty"; id: CompanionId }
+  | { type: "companionInParty"; id: CompanionId; value?: boolean }
+  | { type: "partyNotFull" }
+  | { type: "personalQuestDone"; id: CompanionId; value?: boolean }
   | { type: "trust"; id: CompanionId; min: number }
   | { type: "intimacy"; id: CompanionId; min: number }
   | { type: "contracted"; id: CompanionId }
@@ -87,6 +91,7 @@ export type Condition =
   | { type: "alert"; min: number }
   | { type: "corruption"; min: number }
   | { type: "period"; at: PeriodKey }
+  | { type: "periodIn"; in: PeriodKey[] }
   | { type: "origin"; in: Origin[] };
 
 export type Effect =
@@ -103,7 +108,8 @@ export type Effect =
   | { type: "leaveParty"; id: CompanionId }
   | { type: "advanceTime" }
   | { type: "setLocation"; id: string }
-  | { type: "setScene"; id: string };
+  | { type: "setScene"; id: string }
+  | { type: "setPersonalQuestComplete"; id: CompanionId; value: boolean };
 
 export interface Outcome {
   text?: string | string[];
@@ -119,6 +125,7 @@ export interface Choice {
     stat: StatKey;
     modifier?: number;
     companion?: CompanionId;
+    tags?: CheckTag[];
   };
   success?: Outcome;
   partial?: Outcome;
