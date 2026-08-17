@@ -4,7 +4,7 @@
 
 **公开试玩**：https://2981554398liujiawei-cyber.github.io/DND-7day-city/
 
-**当前**：V0.4 Release Candidate
+**当前**：V1.0 Stable
 
 黑暗奇幻 · 类 DND · 文字驱动 RPG。
 

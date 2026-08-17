@@ -37,7 +37,7 @@ export default function StartScreen() {
           龙临前夜 · 48 小时
           <span className="game-subtitle-en">48 HOURS BEFORE THE DRAGON</span>
         </p>
-        <p className="game-version">V0.4 · Release Candidate</p>
+        <p className="game-version">V1.0</p>
 
         {hasSave ? (
           <div className="start-actions">
