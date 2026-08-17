@@ -1,0 +1,279 @@
+import { create } from "zustand";
+import type {
+  Choice,
+  GameStateData,
+  Origin,
+} from "../types/game";
+import {
+  gradeRollForChoice,
+  applyGradeOutcome,
+  type GradeRoll,
+} from "../engine/sceneEngine";
+import { pushHistory, applyEffects } from "../engine/effects";
+import { ORIGINS } from "../data/companions";
+import { secretTitle } from "../data/secrets";
+
+const SAVE_KEY = "seven-day-city-save-v1";
+const SAVE_VERSION = 1;
+
+function freshState(name: string, origin: Origin): GameStateData {
+  return {
+    version: SAVE_VERSION,
+    player: { name, origin, stats: { ...ORIGINS[origin].stats } },
+    periodIndex: 0,
+    location: "tavern",
+    gold: 50,
+    corruption: 0,
+    alert: 0,
+    flags: {},
+    secrets: [],
+    companions: {
+      serena: { met: false, recruited: false, trust: 10, intimacy: 0, contracted: false, personalQuestComplete: false },
+      lia: { met: false, recruited: false, trust: 10, intimacy: 0, contracted: false, personalQuestComplete: false },
+      milena: { met: false, recruited: false, trust: 10, intimacy: 0, contracted: false, personalQuestComplete: false },
+    },
+    party: [],
+    currentSceneId: "intro_001",
+    history: [],
+  };
+}
+
+export interface PendingCheck {
+  choice: Choice;
+  roll: GradeRoll;
+  usedGuardian: boolean;
+  usedBlackCat: boolean;
+  usedReroll: boolean;
+  forbiddenUsed: boolean;
+}
+
+interface GameStore {
+  state: GameStateData | null;
+  screen: "start" | "game" | "ending";
+  outcome: {
+    text: string[];
+    logs: string[];
+    roll?: GradeRoll;
+    nextSceneId?: string;
+  } | null;
+  pending: PendingCheck | null;
+
+  newGame: (name: string, origin: Origin) => void;
+  continueGame: () => boolean;
+  clearSave: () => void;
+  backToStart: () => void;
+
+  selectChoice: (choice: Choice) => void;
+  rollPending: () => void;
+  acceptOutcome: () => void;
+  useGuardian: () => void;
+  useBlackCat: () => void;
+  useForbiddenExchange: () => void;
+  gotoScene: (sceneId: string) => void;
+}
+
+function persist(state: GameStateData) {
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+  } catch {
+    /* ignore */
+  }
+}
+
+function loadSave(): GameStateData | null {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as GameStateData;
+    if (parsed.version !== SAVE_VERSION) return null;
+    if (!parsed.player || !parsed.companions || !Array.isArray(parsed.party)) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function log(state: GameStateData, msg: string) {
+  pushHistory(state, msg);
+}
+
+export const useGameStore = create<GameStore>((set, get) => ({
+  state: null,
+  screen: "start",
+  outcome: null,
+  pending: null,
+
+  newGame: (name, origin) => {
+    const s = freshState(name, origin);
+    persist(s);
+    set({ state: s, screen: "game", outcome: null, pending: null });
+  },
+
+  continueGame: () => {
+    const s = loadSave();
+    if (!s) return false;
+    set({ state: s, screen: s.ending ? "ending" : "game", outcome: null, pending: null });
+    return true;
+  },
+
+  clearSave: () => {
+    localStorage.removeItem(SAVE_KEY);
+    set({ state: null, screen: "start", outcome: null, pending: null });
+  },
+
+  backToStart: () => {
+    set({ state: null, screen: "start", outcome: null, pending: null });
+  },
+
+  selectChoice: (choice) => {
+    const st = get().state;
+    if (!st) return;
+
+    if (choice.check) {
+      // 有检定：先掷骰，进入 pending（等待玩家决定是否用伙伴能力）
+      const roll = gradeRollForChoice(choice, st);
+      set({
+        pending: {
+          choice,
+          roll,
+          usedGuardian: false,
+          usedBlackCat: false,
+          usedReroll: false,
+          forbiddenUsed: false,
+        },
+        outcome: null,
+      });
+      return;
+    }
+
+    // 无检定：直接结算
+    const outcome = choice.outcome;
+    const logs: string[] = [];
+    if (outcome) {
+      logs.push(...applyPlainEffects(outcome, st));
+    }
+    for (const l of logs) log(st, l);
+    persist(st);
+    const textLines: string[] = outcome
+      ? (Array.isArray(outcome.text) ? outcome.text : outcome.text ? [outcome.text] : [])
+      : [];
+    let nextSceneId = outcome?.nextScene;
+    if (!nextSceneId && outcome?.effects) {
+      const setScene = outcome.effects.find((e) => e.type === "setScene");
+      if (setScene && setScene.type === "setScene") {
+        nextSceneId = setScene.id;
+      }
+    }
+    set({
+      state: st,
+      outcome: {
+        text: textLines,
+        logs,
+        nextSceneId,
+      },
+      pending: null,
+    });
+  },
+
+  rollPending: () => {
+    // 已经由 selectChoice 掷过；此方法仅确保有 pending 时展示
+    const st = get().state;
+    const pc = get().pending;
+    if (!st || !pc) return;
+    const r = pc.roll;
+    set({
+      outcome: {
+        text: [],
+        logs: [`🎲 ${r.die1} + ${r.die2} + ${r.stat}${r.statValue} = ${r.total}`],
+        roll: r,
+      },
+    });
+  },
+
+  acceptOutcome: () => {
+    const st = get().state;
+    const pc = get().pending;
+    if (!st || !pc) return;
+    const roll = pc.roll;
+    const applied = applyGradeOutcome(pc.choice, roll.grade, st);
+    for (const l of applied.logs) log(st, l);
+    persist(st);
+    set({
+      state: st,
+      pending: null,
+      outcome: {
+        text: applied.textLines,
+        logs: applied.logs,
+        roll,
+        nextSceneId: applied.nextSceneId,
+      },
+    });
+  },
+
+  useGuardian: () => {
+    const st = get().state;
+    const pc = get().pending;
+    if (!st || !pc) return;
+    if (!st.party.includes("serena") || pc.usedGuardian) return;
+    if (pc.roll.grade !== "failure") return;
+    // 守护：失败 → 部分成功
+    const newRoll: GradeRoll = { ...pc.roll, grade: "partial" };
+    set({ pending: { ...pc, roll: newRoll, usedGuardian: true } });
+  },
+
+  useBlackCat: () => {
+    const st = get().state;
+    const pc = get().pending;
+    if (!st || !pc) return;
+    if (!st.party.includes("lia") || pc.usedBlackCat) return;
+    if (pc.roll.grade !== "failure" && pc.roll.grade !== "partial") return;
+    // 黑猫：重掷一次
+    const newRoll = gradeRollForChoice(pc.choice, st);
+    set({ pending: { ...pc, roll: newRoll, usedBlackCat: true } });
+  },
+
+  useForbiddenExchange: () => {
+    const st = get().state;
+    const pc = get().pending;
+    if (!st || !pc) return;
+    if (!st.party.includes("milena") || pc.forbiddenUsed) return;
+    if (pc.roll.grade !== "failure" && pc.roll.grade !== "partial") return;
+    // 禁忌交换：强制成功，腐化 +10
+    st.corruption = Math.min(100, st.corruption + 10);
+    log(st, "腐化 +10（禁忌交换）");
+    const newRoll: GradeRoll = { ...pc.roll, grade: "success" };
+    set({
+      state: st,
+      pending: { ...pc, roll: newRoll, forbiddenUsed: true },
+    });
+  },
+
+  gotoScene: (sceneId) => {
+    const st = get().state;
+    if (!st) return;
+    let next = { ...st, currentSceneId: sceneId };
+    if (sceneId.startsWith("ending_") && sceneId !== "ending_screen") {
+      next = { ...next, ending: sceneId };
+    }
+    persist(next);
+    set({ state: next, outcome: null, pending: null });
+    if (sceneId === "ending_screen") {
+      const final = { ...next, ending: next.ending ?? "ending" };
+      persist(final);
+      set({ state: final, screen: "ending", outcome: null });
+    }
+  },
+}));
+
+function applyPlainEffects(
+  outcome: { effects?: import("../types/game").Effect[] },
+  state: GameStateData
+): string[] {
+  return applyEffects(outcome.effects, state);
+}
+
+export function isEndingScene(sceneId: string): boolean {
+  return sceneId.startsWith("ending_");
+}
+
+export { secretTitle };
