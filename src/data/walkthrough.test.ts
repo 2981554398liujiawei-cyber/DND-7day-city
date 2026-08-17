@@ -837,6 +837,141 @@ describe("通关模拟", () => {
     expect(text).not.toContain("米蕾娜");
   });
 
+  it("V0.3-RC1 pair regression：三个场景每个选项都设置自己的 done flag，不污染其它组合", () => {
+    const combos = [
+      { scene: "pair_serena_lia_001", flag: "pair_serena_lia_done" },
+      { scene: "pair_serena_milena_001", flag: "pair_serena_milena_done" },
+      { scene: "pair_lia_milena_001", flag: "pair_lia_milena_done" },
+    ];
+    const allFlags = combos.map((c) => c.flag);
+    for (const combo of combos) {
+      const scene = getScene(combo.scene);
+      expect(scene.choices.length, `${combo.scene} 应有 3 个选项`).toBe(3);
+      for (const c of scene.choices) {
+        const s = makeState();
+        s.currentSceneId = combo.scene;
+        const r = resolveChoice(c, s);
+        expect(r.nextSceneId).toBe("pair_event_end");
+        expect(s.flags[combo.flag], `${combo.scene} ${c.id} 应设 ${combo.flag}`).toBe(true);
+        for (const other of allFlags) {
+          if (other !== combo.flag) {
+            expect(s.flags[other], `${combo.scene} ${c.id} 不应设置 ${other}`).toBeFalsy();
+          }
+        }
+      }
+    }
+  });
+
+  it("V0.3-RC1 Route B：莉娅恋爱真实通关 → romance_lia", () => {
+    const s = makeState();
+    const path = [
+      "intro_001_c",
+      "intro_002_b",
+      "intro_003_b",
+      "intro_004_a",
+      // 黑街：洞察检定成功拿 lia_spy_history → 夜里谈她的过去（+10）
+      "hub_blackstreet_d1",
+      "blackstreet_001_c",
+      "blackstreet_002_c",
+      // 王城主线（推进时间 + 塞蕾娜入队 → 双人事件）
+      "hub_royal_d1",
+      "royal_001_c",
+      "royal_002_a",
+      // 夜晚营地：双人事件（支持莉娅 +3 信任）
+      "hub_camp_d1",
+      "camp_night_pair_serena_lia",
+      "pair_serena_lia_b",
+      "pair_event_end_a",
+      // 莉娅个人事件（+10 信任 +3 亲密）
+      "camp_night_lia",
+      "lia_personal_001_a",
+      "companion_event_end_a",
+      // 过夜 → DAY2
+      "camp_night_rest",
+      "hub_tavern_d2",
+      "tavern_d2_001_b", // 莉娅识破帝国探子（+5 信任）
+      "tavern_d2_002_b", // 休息到夜晚 → d2_night
+      // 第二关系事件（+12 信任 +5 亲密 → 亲密 8 达标）
+      "hub_camp_d2",
+      "camp_night_lia_rel2",
+      "lia_rel2_001_a",
+      "companion_event_end_a",
+      // 契约（信任 45 达标）
+      "camp_night_lia_contract",
+      "lia_contract_001_a",
+      "companion_event_end_a",
+      // 最终羁绊（恋爱）
+      "camp_night_lia_bond",
+      "lia_bond_001_a",
+      "companion_event_end_a",
+      "camp_night_rest",
+      "hub_finale",
+      "finale_royal_hunt",
+      "ending_royal_continue",
+    ];
+    const { state: final } = walk(s, path, { forceSuccess: true });
+    expect(final.flags.romance_lia).toBe(true);
+    expect(final.flags.lia_bond_done).toBe(true);
+    expect(final.companions.lia.contracted).toBe(true);
+    expect(final.companions.lia.trust).toBeGreaterThanOrEqual(45);
+    expect(final.currentSceneId).toBe("ending_screen");
+  });
+
+  it("V0.3-RC1 Route C：米蕾娜恋爱 + 龙之契约真实通关 → romance_milena", () => {
+    const s = makeState();
+    const path = [
+      "intro_001_c",
+      "intro_002_c",
+      "intro_003_c",
+      "intro_004_c",
+      // 圣堂（米蕾娜秘密线索）
+      "hub_church_d1",
+      "church_001_b",
+      "church_002_a",
+      // 黑街（地下线索）
+      "hub_blackstreet_d1",
+      "blackstreet_001_d",
+      "blackstreet_002_a",
+      // 地下（共鸣）
+      "hub_underground",
+      "underground_001_b",
+      "underground_002_b",
+      // 地下后已到 DAY2：酒馆休息到夜晚
+      "hub_tavern_d2",
+      "tavern_d2_001_c", // 米蕾娜听难民低语（+5 信任 +2 亲密）
+      "tavern_d2_002_b", // 休息到夜晚 → d2_night
+      // 夜晚营地：米蕾娜个人事件（+10 信任 +4 亲密）
+      "hub_camp_d2",
+      "camp_night_milena",
+      "milena_personal_001_a",
+      "companion_event_end_a",
+      // 第二关系事件（+12 信任 +4 亲密）
+      "camp_night_milena_rel2",
+      "milena_rel2_001_c",
+      "companion_event_end_a",
+      // 契约（信任达标）
+      "camp_night_milena_contract",
+      "milena_contract_001_a",
+      "companion_event_end_a",
+      // 最终羁绊（恋爱）
+      "camp_night_milena_bond",
+      "milena_bond_001_a",
+      "companion_event_end_a",
+      "camp_night_rest",
+      "hub_finale",
+      "finale_dragon_contract",
+      "finale_dragon_contract_attempt_a",
+      "ending_dragon_contract_continue",
+    ];
+    const { state: final, visited } = walk(s, path, { forceSuccess: true });
+    expect(final.flags.romance_milena).toBe(true);
+    expect(final.flags.milena_bond_done).toBe(true);
+    expect(final.companions.milena.contracted).toBe(true);
+    expect(final.companions.milena.trust).toBeGreaterThanOrEqual(45);
+    expect(visited).toContain("ending_dragon_contract");
+    expect(final.currentSceneId).toBe("ending_screen");
+  });
+
   it("V0.3 契约强化：专注路线契约后 bond 门槛可达（intimacy ≥ 8）", () => {
     const s = makeState();
     const path = [

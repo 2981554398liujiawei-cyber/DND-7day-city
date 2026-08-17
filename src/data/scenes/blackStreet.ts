@@ -148,7 +148,7 @@ export const blackStreetScenes: Scene[] = [
         outcome: {
           text: "莉娅沉默片刻，最后松了口：“……行吧，晚上再说。有些话，不适合在黑街的风里讲。”",
           effects: [
-            { type: "trust", id: "lia", amount: 3 },
+            { type: "trust", id: "lia", amount: 10 },
             { type: "setFlag", key: "lia_agreed_talk", value: true },
             { type: "setFlag", key: "blackstreet_main_done", value: true },
             { type: "recruit", id: "lia" },

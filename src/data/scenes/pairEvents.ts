@@ -152,7 +152,7 @@ export const pairScenes: Scene[] = [
           effects: [
             { type: "trust", id: "milena", amount: 3 },
             { type: "intimacy", id: "milena", amount: 1 },
-            { type: "setFlag", key: "pair_serena_milena_done", value: true },
+            { type: "setFlag", key: "pair_lia_milena_done", value: true },
           ],
           nextScene: "pair_event_end",
         },
