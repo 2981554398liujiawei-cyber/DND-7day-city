@@ -128,7 +128,7 @@ export interface Choice {
     modifier?: number;
     companion?: CompanionId;
     tags?: CheckTag[];
-    alertPenalty?: boolean; // 警戒 ≥ 30 时 modifier -1
+    alertPenalty?: boolean; // 警戒 ≥ 15 时 modifier -1
   };
   success?: Outcome;
   partial?: Outcome;

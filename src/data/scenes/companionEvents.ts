@@ -432,6 +432,170 @@ export const companionEventsScenes: Scene[] = [
     ],
   },
 
+  // ============ 最终羁绊事件（V0.3：恋爱/战友选择） ============
+  {
+    id: "serena_bond_001",
+    title: "塞蕾娜 · 城墙之夜",
+    text: [
+      "龙临前的最后一夜。塞蕾娜独自站在城墙上，夜风把她未束的头发吹得凌乱。你走过去，她没有回头，只是望着地平线，忽然开口：",
+      "“……如果明天我们都活下来——你打算去哪？”",
+    ],
+    location: "royal",
+    conditions: [
+      { type: "contracted", id: "serena" },
+      { type: "companionInParty", id: "serena" },
+      { type: "intimacy", id: "serena", min: 8 },
+    ],
+    choices: [
+      {
+        id: "serena_bond_001_a",
+        text: "❤️【恋爱】“如果你愿意，我想让未来里有你。”",
+        outcome: {
+          text: "塞蕾娜怔住了，半晌才转过身。月光下，她的眼眶有些发红，却倔强地不肯让眼泪落下：“……骑士不该有软肋。可你，不是我的软肋。你是我的选择。”她向前一步，轻轻环住你。夜风里，她把脸埋进你的肩头，声音闷闷的，“答应我，明天我们都活着。”",
+          effects: [
+            { type: "setFlag", key: "serena_bond_done", value: true },
+            { type: "setFlag", key: "romance_serena", value: true },
+            { type: "intimacy", id: "serena", amount: 10 },
+          ],
+          nextScene: "companion_event_end",
+        },
+      },
+      {
+        id: "serena_bond_001_b",
+        text: "🛡️【战友】“去哪里都行。下次，还一起冒险。”",
+        outcome: {
+          text: "塞蕾娜的嘴角扬起一抹笑意，带着释然：“……好。龙归故乡也好，城毁人亡也罢，只要你还愿意和我并肩，我就没什么好怕的。”她握紧剑柄，目光落在你身上，“一言为定。”",
+          effects: [
+            { type: "setFlag", key: "serena_bond_done", value: true },
+            { type: "setFlag", key: "bond_serena_companion", value: true },
+            { type: "intimacy", id: "serena", amount: 5 },
+          ],
+          nextScene: "companion_event_end",
+        },
+      },
+      {
+        id: "serena_bond_001_c",
+        text: "保持距离——“先活过明天再说。”",
+        outcome: {
+          text: "塞蕾娜沉默片刻，轻轻点头：“……也对。有些话，留到明天之后再说，才算数。”她不再追问，只是与你并肩站着，安静地等待黎明。",
+          effects: [
+            { type: "setFlag", key: "serena_bond_done", value: true },
+          ],
+          nextScene: "companion_event_end",
+        },
+      },
+    ],
+  },
+
+  {
+    id: "lia_bond_001",
+    title: "莉娅 · 黑猫不走了",
+    text: [
+      "龙临前的最后一夜，你回到营地，看见莉娅的行李已经打好，放在门边。她正望着那包袱出神。",
+      "“天亮我就走。”她说得干脆，像在说服自己，“我不是骑士，没必要陪你死磕一条龙。”",
+      "可你注意到，包袱口系着的绳结，是松的。她根本没有真的收拾好离开的东西。",
+    ],
+    location: "blackstreet",
+    conditions: [
+      { type: "contracted", id: "lia" },
+      { type: "companionInParty", id: "lia" },
+      { type: "intimacy", id: "lia", min: 8 },
+    ],
+    choices: [
+      {
+        id: "lia_bond_001_a",
+        text: "❤️【恋爱】“留下来，不是因为契约。因为我想你留下。”",
+        outcome: {
+          text: "莉娅盯着你看了很久，久到你以为她要开口拒绝。然后她嗤笑一声，把包袱往角落里一踢：“……麻烦。你最好别让我后悔。”她别过脸去，耳尖却泛红，“行了行了，我留下。去睡吧，明早龙来了，我可没空给你擦眼泪。”",
+          effects: [
+            { type: "setFlag", key: "lia_bond_done", value: true },
+            { type: "setFlag", key: "romance_lia", value: true },
+            { type: "intimacy", id: "lia", amount: 10 },
+          ],
+          nextScene: "companion_event_end",
+        },
+      },
+      {
+        id: "lia_bond_001_b",
+        text: "🐈【战友】“不管你去哪，我这里都给你留个位置。”",
+        outcome: {
+          text: "莉娅的眉毛挑了挑，嘴角却藏不住笑意：“……哟，外乡人，这话听着怪肉麻的。”她顿了顿，声音低下来，“不过……行吧。我本来也没打算真走。黑街的猫认了主，就懒得挪窝了。”",
+          effects: [
+            { type: "setFlag", key: "lia_bond_done", value: true },
+            { type: "setFlag", key: "bond_lia_companion", value: true },
+            { type: "intimacy", id: "lia", amount: 5 },
+          ],
+          nextScene: "companion_event_end",
+        },
+      },
+      {
+        id: "lia_bond_001_c",
+        text: "保持距离——“想走就走吧，不必勉强。”",
+        outcome: {
+          text: "莉娅的笑容僵了一瞬，随即恢复成那副吊儿郎当的模样：“……哈，你可真够大方的。”她把包袱重新系好，却始终没有真的拎起来，“行了，天亮的事，天亮再说。”",
+          effects: [
+            { type: "setFlag", key: "lia_bond_done", value: true },
+          ],
+          nextScene: "companion_event_end",
+        },
+      },
+    ],
+  },
+
+  {
+    id: "milena_bond_001",
+    title: "米蕾娜 · 与怪物同行",
+    text: [
+      "龙临前的最后一夜，米蕾娜坐在火堆旁，把脸埋在膝盖间。你走近时，她抬起头，眼里映着跳动的火光，声音很轻：",
+      "“……如果我真的变成怪物——不是‘像’，而是彻底变成非人的存在——你还会站在我身边吗？”",
+    ],
+    location: "church",
+    conditions: [
+      { type: "contracted", id: "milena" },
+      { type: "companionInParty", id: "milena" },
+      { type: "intimacy", id: "milena", min: 8 },
+    ],
+    choices: [
+      {
+        id: "milena_bond_001_a",
+        text: "❤️【恋爱】“我喜欢的是你，不是你属于哪个物种。”",
+        outcome: {
+          text: "米蕾娜的瞳孔颤了颤，眼泪毫无预兆地落下来。她伸出手，又缩回去，最后只是用指尖轻轻碰了碰你的手背，像触碰一件易碎的珍宝：“……从来没有人，对我说过这种话。”她把额头抵在你的手背上，声音哽咽，“那你答应我，无论我变成什么样，你都不许先松手。”",
+          effects: [
+            { type: "setFlag", key: "milena_bond_done", value: true },
+            { type: "setFlag", key: "romance_milena", value: true },
+            { type: "intimacy", id: "milena", amount: 10 },
+          ],
+          nextScene: "companion_event_end",
+        },
+      },
+      {
+        id: "milena_bond_001_b",
+        text: "🕯️【羁绊】“无论你变成什么，我们都是伙伴。”",
+        outcome: {
+          text: "米蕾娜怔了怔，随即破涕为笑：“……伙伴。我这一生，第一次有人这么认真地跟我说这个词。”她深吸一口气，握紧拳头，“那好，就算明天变成怪物，我也要做一头记得朋友的怪物。”",
+          effects: [
+            { type: "setFlag", key: "milena_bond_done", value: true },
+            { type: "setFlag", key: "bond_milena_companion", value: true },
+            { type: "intimacy", id: "milena", amount: 5 },
+          ],
+          nextScene: "companion_event_end",
+        },
+      },
+      {
+        id: "milena_bond_001_c",
+        text: "保持距离——“先活过明天，再说这些。”",
+        outcome: {
+          text: "米蕾娜垂下眼帘，没有追问：“……嗯，你说得对。”她抱紧膝盖，望着火焰沉默了很久，“那明天，我会努力活下来的。为了……为了还能站在你身边。”",
+          effects: [
+            { type: "setFlag", key: "milena_bond_done", value: true },
+          ],
+          nextScene: "companion_event_end",
+        },
+      },
+    ],
+  },
+
   {
     id: "companion_event_end",
     title: "夜谈已毕",

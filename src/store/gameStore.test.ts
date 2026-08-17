@@ -211,3 +211,72 @@ describe("伙伴能力范围", () => {
     expect(useGameStore.getState().state!.corruption).toBe(10);
   });
 });
+
+describe("契约强化（V0.3）", () => {
+  it("塞蕾娜：契约后第一次守护 failure → success，之后恢复 failure → partial", () => {
+    newGame("mercenary");
+    const st = useGameStore.getState().state!;
+    st.party = ["serena"];
+    st.companions.serena.contracted = true;
+    // 第一次守护：failure → success
+    let pc = rollWith(0, 0, makeChoice(["combat"]));
+    expect(pc.roll.grade).toBe("failure");
+    useGameStore.getState().useGuardian();
+    pc = useGameStore.getState().pending!;
+    expect(pc.roll.grade).toBe("success");
+    expect(st.flags.serena_guardian_boost_used).toBe(true);
+    // 第二次守护：仍为 failure → partial
+    pc = rollWith(0, 0, makeChoice(["combat"]));
+    expect(pc.roll.grade).toBe("failure");
+    useGameStore.getState().useGuardian();
+    pc = useGameStore.getState().pending!;
+    expect(pc.roll.grade).toBe("partial");
+  });
+
+  it("塞蕾娜：未契约时守护 failure → partial（原能力）", () => {
+    newGame("mercenary");
+    const st = useGameStore.getState().state!;
+    st.party = ["serena"];
+    st.companions.serena.contracted = false;
+    const pc = rollWith(0, 0, makeChoice(["combat"]));
+    expect(pc.roll.grade).toBe("failure");
+    useGameStore.getState().useGuardian();
+    expect(useGameStore.getState().pending!.roll.grade).toBe("partial");
+  });
+
+  it("莉娅：契约后重掷仍失败 → 自动 partial（每局一次）", () => {
+    newGame("mercenary");
+    const st = useGameStore.getState().state!;
+    st.party = ["lia"];
+    st.companions.lia.contracted = true;
+    // 首次失败 → 重掷仍失败（0,0）
+    let pc = rollWith(0, 0, makeChoice(["stealth"], "agility"));
+    expect(pc.roll.grade).toBe("failure");
+    vi.spyOn(Math, "random").mockReturnValueOnce(0).mockReturnValueOnce(0);
+    useGameStore.getState().useBlackCat();
+    vi.restoreAllMocks();
+    pc = useGameStore.getState().pending!;
+    expect(pc.roll.grade).toBe("partial");
+    expect(st.flags.lia_blackcat_boost_used).toBe(true);
+    // 第二次：重掷仍失败 → 保持 failure（强化已用）
+    pc = rollWith(0, 0, makeChoice(["stealth"], "agility"));
+    expect(pc.roll.grade).toBe("failure");
+    vi.spyOn(Math, "random").mockReturnValueOnce(0).mockReturnValueOnce(0);
+    useGameStore.getState().useBlackCat();
+    vi.restoreAllMocks();
+    pc = useGameStore.getState().pending!;
+    expect(pc.roll.grade).toBe("failure");
+  });
+
+  it("米蕾娜：契约后禁忌交换腐化 +5 而非 +10", () => {
+    newGame("mercenary");
+    const st = useGameStore.getState().state!;
+    st.party = ["milena"];
+    st.companions.milena.contracted = true;
+    const pc = rollWith(0, 0, makeChoice(["ancient"], "knowledge"));
+    expect(pc.roll.grade).toBe("failure");
+    useGameStore.getState().useForbiddenExchange();
+    expect(useGameStore.getState().pending!.roll.grade).toBe("success");
+    expect(useGameStore.getState().state!.corruption).toBe(5);
+  });
+});

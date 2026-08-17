@@ -226,6 +226,11 @@ function walk(
     visited.push(sceneId);
     const choices = getAvailableChoices(sceneId, state);
 
+    // STOP：在此处提前终止（path 用尽前手动停止）
+    if (path[idx] === "STOP") {
+      break;
+    }
+
     // PUSH_TIME：循环推进时间到 finale
     if (path[idx] === "PUSH_TIME") {
       idx++;
@@ -707,5 +712,167 @@ describe("通关模拟", () => {
         expect(hasOutcome, `场景 ${scene.id} 选项 ${c.id} 缺 outcome`).toBeTruthy();
       }
     }
+  });
+
+  it("V0.3 Route A：塞蕾娜恋爱全流程 → romance_serena → 结局 epilogue 变化", () => {
+    const s = makeState();
+    const path = [
+      "intro_001_c",
+      "intro_002_a",
+      "intro_003_a",
+      "intro_004_b",
+      "hub_royal_d1",
+      "royal_001_c",
+      "royal_002_a",
+      "hub_blackstreet_d1",
+      "blackstreet_001_a",
+      "blackstreet_002_a",
+      "hub_camp_d1",
+      "camp_night_serena",
+      "serena_personal_001_a",
+      "companion_event_end_a",
+      "camp_night_rest",
+      "hub_tavern_d2",
+      "tavern_d2_001_e",
+      "tavern_d2_002_b",
+      "hub_camp_d2",
+      "camp_night_serena_rel2",
+      "serena_rel2_001_a",
+      "companion_event_end_a",
+      "camp_night_serena_contract",
+      "serena_contract_001_a",
+      "companion_event_end_a",
+      // 最终羁绊事件（恋爱）
+      "camp_night_serena_bond",
+      "serena_bond_001_a",
+      "companion_event_end_a",
+      "camp_night_rest",
+      "hub_finale",
+      "finale_return_egg",
+      "ending_return_egg_continue",
+    ];
+    const { state: final } = walk(s, path, { forceSuccess: true });
+    expect(final.flags.romance_serena).toBe(true);
+    expect(final.flags.serena_bond_done).toBe(true);
+    expect(final.companions.serena.contracted).toBe(true);
+    expect(final.currentSceneId).toBe("ending_screen");
+  });
+
+  it("V0.3 Route D：无恋爱路线仍可通关（不触发 bond 也能结局）", () => {
+    const s = makeState();
+    const path = [
+      "intro_001_c",
+      "intro_002_a",
+      "intro_003_a",
+      "intro_004_a",
+      "hub_blackstreet_d1",
+      "blackstreet_001_a",
+      "blackstreet_002_a",
+      "hub_royal_d1",
+      "royal_001_c",
+      "royal_002_a",
+      "hub_camp_d1",
+      "camp_night_rest",
+      "PUSH_TIME",
+      "hub_finale",
+      "finale_royal_hunt",
+      "ending_royal_continue",
+    ];
+    const { state: final } = walk(s, path, { forceSuccess: true });
+    expect(final.currentSceneId).toBe("ending_screen");
+    // 未契约 → bond 选项本就不该出现；无 romance flag
+    expect(final.flags.romance_serena).toBeFalsy();
+    expect(final.flags.serena_bond_done).toBeFalsy();
+  });
+
+  it("V0.3 bond 选项：intimacy < 8 时契约后也不出现", () => {
+    const s = makeState();
+    s.periodIndex = PERIOD_ORDER.indexOf("d2_night");
+    s.currentSceneId = "camp_night";
+    s.party = ["serena"];
+    s.companions.serena.contracted = true;
+    s.companions.serena.met = true;
+    s.companions.serena.recruited = true;
+    s.companions.serena.intimacy = 7;
+    let choices = getAvailableChoices("camp_night", s);
+    expect(choices.some((c) => c.id === "camp_night_serena_bond")).toBe(false);
+    // intimacy 提升到 8 → 出现
+    s.companions.serena.intimacy = 8;
+    choices = getAvailableChoices("camp_night", s);
+    expect(choices.some((c) => c.id === "camp_night_serena_bond")).toBe(true);
+    // 非契约 → 不出现
+    s.companions.serena.contracted = false;
+    choices = getAvailableChoices("camp_night", s);
+    expect(choices.some((c) => c.id === "camp_night_serena_bond")).toBe(false);
+  });
+
+  it("V0.3 双人组合事件：对应两人在队才出现，且只触发一次", () => {
+    const s = makeState();
+    s.periodIndex = PERIOD_ORDER.indexOf("d1_night");
+    s.currentSceneId = "camp_night";
+    s.party = ["serena", "lia"];
+    s.companions.serena.met = s.companions.serena.recruited = true;
+    s.companions.lia.met = s.companions.lia.recruited = true;
+    let choices = getAvailableChoices("camp_night", s);
+    expect(choices.some((c) => c.id === "camp_night_pair_serena_lia")).toBe(true);
+    // 只有塞蕾娜在队 → 不出现
+    s.party = ["serena"];
+    choices = getAvailableChoices("camp_night", s);
+    expect(choices.some((c) => c.id === "camp_night_pair_serena_lia")).toBe(false);
+    // 触发过一次（flag 已设）→ 不再出现
+    s.party = ["serena", "lia"];
+    s.flags.pair_serena_lia_done = true;
+    choices = getAvailableChoices("camp_night", s);
+    expect(choices.some((c) => c.id === "camp_night_pair_serena_lia")).toBe(false);
+    // 三组都注册且可到达
+    expect(getScene("pair_serena_milena_001")).toBeTruthy();
+    expect(getScene("pair_lia_milena_001")).toBeTruthy();
+  });
+
+  it("V0.3 Finale 文本中性：不点名具体伙伴", () => {
+    const scene = getScene("finale_001");
+    const text = Array.isArray(scene.text) ? scene.text.join("") : scene.text;
+    expect(text).not.toContain("塞蕾娜");
+    expect(text).not.toContain("莉娅");
+    expect(text).not.toContain("米蕾娜");
+  });
+
+  it("V0.3 契约强化：专注路线契约后 bond 门槛可达（intimacy ≥ 8）", () => {
+    const s = makeState();
+    const path = [
+      "intro_001_c",
+      "intro_002_a",
+      "intro_003_a",
+      "intro_004_b",
+      "hub_royal_d1",
+      "royal_001_c",
+      "royal_002_a",
+      "hub_blackstreet_d1",
+      "blackstreet_001_a",
+      "blackstreet_002_a",
+      "hub_camp_d1",
+      "camp_night_serena",
+      "serena_personal_001_a",
+      "companion_event_end_a",
+      "camp_night_rest",
+      "hub_tavern_d2",
+      "tavern_d2_001_e",
+      "tavern_d2_002_b",
+      "hub_camp_d2",
+      "camp_night_serena_rel2",
+      "serena_rel2_001_a",
+      "companion_event_end_a",
+      "camp_night_serena_contract",
+      "serena_contract_001_a",
+      "companion_event_end_a",
+      "STOP",
+    ];
+    const { state: final } = walk(s, path, { forceSuccess: true });
+    // 契约后 intimacy 必须 ≥ 8（bond 触发门槛）
+    expect(final.companions.serena.intimacy).toBeGreaterThanOrEqual(8);
+    // 契约当晚 bond 选项可见
+    final.currentSceneId = "camp_night";
+    const choices = getAvailableChoices("camp_night", final);
+    expect(choices.some((c) => c.id === "camp_night_serena_bond")).toBe(true);
   });
 });

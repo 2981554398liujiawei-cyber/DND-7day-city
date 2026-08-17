@@ -1,6 +1,6 @@
 import { useGameStore } from "../store/gameStore";
 import { getScene } from "../data/scenes";
-import { COMPANIONS } from "../data/companions";
+import { COMPANIONS, ORIGINS } from "../data/companions";
 import type { CompanionId, GameStateData } from "../types/game";
 
 const ENDING_TITLES: Record<string, string> = {
@@ -12,6 +12,26 @@ const ENDING_TITLES: Record<string, string> = {
   ending_corruption: "城与血",
 };
 
+const SECRET_KEYS = [
+  "church_knew_truth",
+  "dragon_is_parent",
+  "egg_is_power_source",
+  "lia_spy_history",
+  "mages_experimented_on_egg",
+  "milena_connected_to_egg",
+  "royal_plan_destroy_dragon",
+  "serena_disobeyed_order",
+];
+
+const CITY_FATES: Record<string, string> = {
+  ending_return_egg: "龙卵已归还，古龙携子远去",
+  ending_royal: "屠龙成功，王权得到巩固",
+  ending_mage: "魔法获得解放，旧秩序崩塌",
+  ending_mage_truth: "魔法受缚，真相大白于天下",
+  ending_dragon_contract: "城与古龙立约，龙卵安息",
+  ending_corruption: "黑暗侵蚀了这座城",
+};
+
 function companionEnding(
   id: CompanionId,
   contracted: boolean,
@@ -21,6 +41,13 @@ function companionEnding(
 ): string {
   const flags = state.flags;
   if (id === "serena") {
+    // 恋爱结局（V0.3）
+    if (flags.romance_serena) {
+      if (endingId === "ending_return_egg") {
+        return "她被骑士团除名的那天，你在城门外等她。塞蕾娜什么也没说，只把行囊扔给你，然后牵住了你的手。";
+      }
+      return "战争结束后，她没有回骑士团。你们一起离开了阿斯特拉——她说，去哪都行，只要是你。";
+    }
     // 受个人剧情 flag 与主结局影响
     if (endingId === "ending_dragon_contract" && contracted) {
       return "她成了龙卵的见证者。骑士团再也没有等回她——但她在城墙上，找到了比军令更值得守护的东西。";
@@ -42,6 +69,13 @@ function companionEnding(
     return "她回到骑士团，继续执行命令，眼里少了一些光。";
   }
   if (id === "lia") {
+    // 恋爱结局（V0.3）
+    if (flags.romance_lia) {
+      if (endingId === "ending_dragon_contract") {
+        return "她留在你身边，守着那份跨种族的盟约。夜里她靠在你肩头，难得没有嘴硬：“……这买卖，不亏。”";
+      }
+      return "黎明前她没有离开。她把包袱扔进行囊，嘟囔着“麻烦”，却跟在你身后走遍了半个帝国。";
+    }
     if (endingId === "ending_dragon_contract" && contracted) {
       return "她留在你身边，守着那份跨种族的盟约。“黑猫的直觉告诉我，这笔买卖，不亏。”";
     }
@@ -53,6 +87,12 @@ function companionEnding(
     return "她没有参加最后的战斗。天亮之前，她已经离开。";
   }
   // milena
+  if (flags.romance_milena) {
+    if (endingId === "ending_dragon_contract") {
+      return "龙卵有了新的守护者。她不再害怕自己的力量——因为她知道，无论她变成什么，都有一个人不会先松手。";
+    }
+    return "她与你同行。偶尔她的影子会泛着幽蓝的光，但她的手，总是暖的。";
+  }
   if (endingId === "ending_dragon_contract" && contracted) {
     return "龙卵有了新的守护者。她与古龙之间的血脉契约，终于不再是一道诅咒，而是一份归宿。";
   }
@@ -80,6 +120,7 @@ function stageLabel(trust: number, contracted: boolean): string {
 export default function EndingScreen() {
   const state = useGameStore((s) => s.state);
   const backToStart = useGameStore((s) => s.backToStart);
+  const restartNewGame = useGameStore((s) => s.restartNewGame);
 
   if (!state) return null;
 
@@ -95,10 +136,38 @@ export default function EndingScreen() {
     (id) => state.companions[id].met
   );
 
+  // 本局档案
+  const discovered = state.secrets.filter((k) => SECRET_KEYS.includes(k)).length;
+  const contractedList = (Object.keys(state.companions) as CompanionId[])
+    .filter((id) => state.companions[id].contracted)
+    .map((id) => COMPANIONS[id].name);
+  const romanceList = (Object.keys(state.companions) as CompanionId[])
+    .filter((id) => state.flags[`romance_${id}`])
+    .map((id) => COMPANIONS[id].name);
+  const originLabel = ORIGINS[state.player.origin].label;
+  const cityFate = CITY_FATES[endingId] ?? title;
+
   return (
     <div className="ending-screen">
       <div className="ending-card">
         <h1 className="ending-title">结局 · {title}</h1>
+
+        {/* 本局档案（V0.3） */}
+        <div className="ending-dossier">
+          <div className="dossier-row"><span>出身</span><b>{originLabel}</b></div>
+          <div className="dossier-row"><span>发现秘密</span><b>{discovered} / {SECRET_KEYS.length}</b></div>
+          <div className="dossier-row"><span>最终腐化</span><b>{state.corruption}</b></div>
+          <div className="dossier-row"><span>最终警戒</span><b>{state.alert}</b></div>
+          <div className="dossier-row">
+            <span>契约</span>
+            <b>{contractedList.length > 0 ? contractedList.map((n) => `✓ ${n}`).join("  ") : "无"}</b>
+          </div>
+          <div className="dossier-row">
+            <span>感情</span>
+            <b>{romanceList.length > 0 ? romanceList.map((n) => `❤️ ${n}`).join("  ") : "无"}</b>
+          </div>
+          <div className="dossier-row"><span>城市命运</span><b>{cityFate}</b></div>
+        </div>
 
         {endingScene ? (
           <div className="ending-body">
@@ -138,8 +207,11 @@ export default function EndingScreen() {
         </div>
 
         <div className="ending-actions">
-          <button className="btn btn-primary" onClick={() => backToStart()}>
-            回到主菜单
+          <button className="btn btn-primary" onClick={() => restartNewGame()}>
+            重新开始
+          </button>
+          <button className="btn" onClick={() => backToStart()}>
+            返回标题
           </button>
         </div>
       </div>

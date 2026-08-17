@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useGameStore } from "../store/gameStore";
 import { ORIGINS } from "../data/companions";
-import type { Origin } from "../types/game";
+import { STAT_LABELS } from "../engine/checks";
+import type { Origin, StatKey } from "../types/game";
 
 export default function StartScreen() {
   const newGame = useGameStore((s) => s.newGame);
@@ -32,7 +33,11 @@ export default function StartScreen() {
     <div className="start-screen">
       <div className="start-card">
         <h1 className="game-title">七日城 · 契约者</h1>
-        <p className="game-subtitle">龙临前夜 · 48 小时</p>
+        <p className="game-subtitle">
+          龙临前夜 · 48 小时
+          <span className="game-subtitle-en">48 HOURS BEFORE THE DRAGON</span>
+        </p>
+        <p className="game-version">V0.3 Public Playtest</p>
 
         {hasSave ? (
           <div className="start-actions">
@@ -66,17 +71,28 @@ export default function StartScreen() {
             />
 
             <div className="origin-list">
-              {(Object.keys(ORIGINS) as Origin[]).map((key) => (
-                <button
-                  key={key}
-                  className={`origin-card ${origin === key ? "selected" : ""}`}
-                  onClick={() => setOrigin(key)}
-                >
-                  <span className="origin-name">{ORIGINS[key].label}</span>
-                  <span className="origin-desc">{ORIGINS[key].desc}</span>
-                  <span className="origin-special">{ORIGINS[key].special}</span>
-                </button>
-              ))}
+              {(Object.keys(ORIGINS) as Origin[]).map((key) => {
+                const o = ORIGINS[key];
+                const statEntries = (Object.keys(o.stats) as StatKey[]).filter(
+                  (s) => o.stats[s] > 0
+                );
+                return (
+                  <button
+                    key={key}
+                    className={`origin-card ${origin === key ? "selected" : ""}`}
+                    onClick={() => setOrigin(key)}
+                  >
+                    <span className="origin-name">{o.label}</span>
+                    <span className="origin-stats">
+                      {statEntries
+                        .map((s) => `${STAT_LABELS[s]} +${o.stats[s]}`)
+                        .join(" / ")}
+                    </span>
+                    <span className="origin-special">{o.special}</span>
+                    <span className="origin-desc">{o.desc}</span>
+                  </button>
+                );
+              })}
             </div>
 
             <button

@@ -10,6 +10,7 @@ import { cathedralScenes } from "./cathedral";
 import { cathedralD2Scenes } from "./cathedralD2";
 import { undergroundScenes } from "./underground";
 import { companionEventsScenes } from "./companionEvents";
+import { pairScenes } from "./pairEvents";
 import { campScenes } from "./camp";
 import { locationHubScenes } from "./locationHub";
 import { finaleScenes } from "./finale";
@@ -26,6 +27,7 @@ export const ALL_SCENES: Scene[] = [
   ...cathedralD2Scenes,
   ...undergroundScenes,
   ...companionEventsScenes,
+  ...pairScenes,
   ...campScenes,
   ...locationHubScenes,
   ...finaleScenes,

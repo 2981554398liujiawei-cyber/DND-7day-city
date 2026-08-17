@@ -1,7 +1,31 @@
 import { useGameStore } from "../store/gameStore";
 import { getScene } from "../data/scenes";
+import { periodLabel } from "../data/time";
 import ChoiceList from "./ChoiceList";
 import DiceResult from "./DiceResult";
+
+const LOCATION_LABELS: Record<string, string> = {
+  tavern: "灰鸦酒馆",
+  royal: "王城区",
+  blackstreet: "黑街",
+  church: "圣堂",
+  underground: "地下遗迹",
+  hub: "城市广场",
+  finale: "城墙之上",
+};
+
+function LocationHeader() {
+  const state = useGameStore((s) => s.state);
+  if (!state) return null;
+  const scene = getScene(state.currentSceneId);
+  const loc = scene.location ? (LOCATION_LABELS[scene.location] ?? scene.location) : "";
+  return (
+    <div className="location-header">
+      <span className="location-name">📍 {loc}</span>
+      <span className="location-time">{periodLabel(state.periodIndex)}</span>
+    </div>
+  );
+}
 
 export default function StoryPanel() {
   const state = useGameStore((s) => s.state);
@@ -17,6 +41,7 @@ export default function StoryPanel() {
   if (pending) {
     return (
       <main className="story-panel">
+        <LocationHeader />
         {scene.title && <h2 className="scene-title">{scene.title}</h2>}
         <div className="story-text">
           {paragraphs.map((p, i) => (
@@ -32,6 +57,7 @@ export default function StoryPanel() {
   if (outcome) {
     return (
       <main className="story-panel">
+        <LocationHeader />
         {scene.title && <h2 className="scene-title">{scene.title}</h2>}
         <div className="story-text">
           {paragraphs.map((p, i) => (
@@ -72,6 +98,7 @@ export default function StoryPanel() {
   // 普通场景：显示选项
   return (
     <main className="story-panel">
+      <LocationHeader />
       {scene.title && <h2 className="scene-title">{scene.title}</h2>}
       <div className="story-text">
         {paragraphs.map((p, i) => (

@@ -10,6 +10,37 @@ export const campScenes: Scene[] = [
     ],
     location: "tavern",
     choices: [
+      // ===== 双人组合短事件（V0.3 Phase 7）=====
+      {
+        id: "camp_night_pair_serena_lia",
+        text: "🛡️🐈 塞蕾娜和莉娅又吵起来了——这次是关于明晚的退路。",
+        conditions: [
+          { type: "companionInParty", id: "serena" },
+          { type: "companionInParty", id: "lia" },
+          { type: "flag", key: "pair_serena_lia_done", value: false },
+        ],
+        outcome: { nextScene: "pair_serena_lia_001" },
+      },
+      {
+        id: "camp_night_pair_serena_milena",
+        text: "🛡️🕯️ 塞蕾娜和米蕾娜在讨论力量与代价。",
+        conditions: [
+          { type: "companionInParty", id: "serena" },
+          { type: "companionInParty", id: "milena" },
+          { type: "flag", key: "pair_serena_milena_done", value: false },
+        ],
+        outcome: { nextScene: "pair_serena_milena_001" },
+      },
+      {
+        id: "camp_night_pair_lia_milena",
+        text: "🐈🕯️ 莉娅正拉着米蕾娜比试“看人的本事”。",
+        conditions: [
+          { type: "companionInParty", id: "lia" },
+          { type: "companionInParty", id: "milena" },
+          { type: "flag", key: "pair_lia_milena_done", value: false },
+        ],
+        outcome: { nextScene: "pair_lia_milena_001" },
+      },
       {
         id: "camp_night_serena",
         text: "与塞蕾娜聊聊。",
@@ -39,6 +70,18 @@ export const campScenes: Scene[] = [
           { type: "flag", key: "serena_contracted_event", value: false },
         ],
         outcome: { nextScene: "serena_contract_001" },
+      },
+      {
+        id: "camp_night_serena_bond",
+        text: "❤️ 与塞蕾娜并肩站在城墙上——最后一夜。",
+        conditions: [
+          { type: "companionInParty", id: "serena" },
+          { type: "contracted", id: "serena" },
+          { type: "intimacy", id: "serena", min: 8 },
+          { type: "flag", key: "serena_bond_done", value: false },
+          { type: "period", at: "d2_night" },
+        ],
+        outcome: { nextScene: "serena_bond_001" },
       },
       {
         id: "camp_night_lia",
@@ -71,6 +114,18 @@ export const campScenes: Scene[] = [
         outcome: { nextScene: "lia_contract_001" },
       },
       {
+        id: "camp_night_lia_bond",
+        text: "❤️ 与莉娅在营地对坐——她今晚有些不对劲。",
+        conditions: [
+          { type: "companionInParty", id: "lia" },
+          { type: "contracted", id: "lia" },
+          { type: "intimacy", id: "lia", min: 8 },
+          { type: "flag", key: "lia_bond_done", value: false },
+          { type: "period", at: "d2_night" },
+        ],
+        outcome: { nextScene: "lia_bond_001" },
+      },
+      {
         id: "camp_night_milena",
         text: "与米蕾娜聊聊。",
         conditions: [
@@ -99,6 +154,18 @@ export const campScenes: Scene[] = [
           { type: "flag", key: "milena_contracted_event", value: false },
         ],
         outcome: { nextScene: "milena_contract_001" },
+      },
+      {
+        id: "camp_night_milena_bond",
+        text: "❤️ 与米蕾娜坐在火堆旁——她眼里藏着心事。",
+        conditions: [
+          { type: "companionInParty", id: "milena" },
+          { type: "contracted", id: "milena" },
+          { type: "intimacy", id: "milena", min: 8 },
+          { type: "flag", key: "milena_bond_done", value: false },
+          { type: "period", at: "d2_night" },
+        ],
+        outcome: { nextScene: "milena_bond_001" },
       },
       {
         id: "camp_night_party",

@@ -67,6 +67,7 @@ export default function DiceResult({ roll }: { roll: GradeRoll }) {
       {roll.grade === "failure" && serenaIn && isCombat && !pending.usedGuardian && (
         <button className="btn btn-ability" onClick={useGuardian}>
           🛡️ 塞蕾娜 · 守护：挡下最坏的结果
+          {state.companions.serena.contracted && !state.flags.serena_guardian_boost_used && "（✨契约强化）"}
         </button>
       )}
 
@@ -74,13 +75,14 @@ export default function DiceResult({ roll }: { roll: GradeRoll }) {
       {roll.grade === "failure" && liaIn && isStealth && !pending.usedBlackCat && (
         <button className="btn btn-ability" onClick={useBlackCat}>
           🐈⬛ 莉娅 · 黑猫：重新潜入一次
+          {state.companions.lia.contracted && !state.flags.lia_blackcat_boost_used && "（✨契约强化）"}
         </button>
       )}
 
       {/* 米蕾娜禁忌交换 */}
       {(roll.grade === "failure" || roll.grade === "partial") && milenaIn && !pending.usedForbidden && (
         <button className="btn btn-ability btn-danger" onClick={useForbiddenExchange}>
-          ✨ 米蕾娜 · 禁忌交换：改为成功（腐化 +10）
+          ✨ 米蕾娜 · 禁忌交换：改为成功（腐化 +{state.companions.milena.contracted ? 5 : 10}）
         </button>
       )}
 

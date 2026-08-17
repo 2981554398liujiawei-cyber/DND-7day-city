@@ -62,6 +62,7 @@ interface GameStore {
   continueGame: () => boolean;
   clearSave: () => void;
   backToStart: () => void;
+  restartNewGame: () => void;
 
   selectChoice: (choice: Choice) => void;
   rollPending: () => void;
@@ -135,6 +136,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   backToStart: () => {
+    set({ state: null, screen: "start", outcome: null, pending: null });
+  },
+
+  // 重新开始：清除存档并回到标题（保留存档键名）
+  restartNewGame: () => {
+    localStorage.removeItem(SAVE_KEY);
     set({ state: null, screen: "start", outcome: null, pending: null });
   },
 
@@ -232,6 +239,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const tags = pc.choice.check?.tags ?? [];
     if (!tags.includes("combat")) return;
     if (pc.roll.grade !== "failure") return;
+    const contracted = st.companions.serena.contracted;
+    if (contracted && !st.flags.serena_guardian_boost_used) {
+      // ✨ 契约强化：每局第一次守护 failure → success
+      st.flags.serena_guardian_boost_used = true;
+      log(st, "✨ 契约强化：塞蕾娜的守护化为完全的胜利");
+      const newRoll: GradeRoll = { ...pc.roll, grade: "success" };
+      set({ state: st, pending: { ...pc, roll: newRoll, usedGuardian: true } });
+      return;
+    }
     // 守护：失败 → 部分成功
     const newRoll: GradeRoll = { ...pc.roll, grade: "partial" };
     set({ pending: { ...pc, roll: newRoll, usedGuardian: true } });
@@ -248,7 +264,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (pc.roll.grade !== "failure") return;
     // 黑猫：重掷一次
     const newRoll = gradeRollForChoice(pc.choice, st);
-    set({ pending: { ...pc, roll: newRoll, usedBlackCat: true } });
+    const contracted = st.companions.lia.contracted;
+    let finalRoll = newRoll;
+    if (contracted && !st.flags.lia_blackcat_boost_used && newRoll.grade === "failure") {
+      // ✨ 契约强化：每局一次，重掷仍失败时自动变为部分成功
+      st.flags.lia_blackcat_boost_used = true;
+      log(st, "✨ 契约强化：黑猫的第二次机会仍失败，但她硬生生把局面扳了回来");
+      finalRoll = { ...newRoll, grade: "partial" };
+    }
+    set({ state: st, pending: { ...pc, roll: finalRoll, usedBlackCat: true } });
   },
 
   useForbiddenExchange: () => {
@@ -257,9 +281,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!st || !pc) return;
     if (!st.party.includes("milena") || pc.usedForbidden) return;
     if (pc.roll.grade !== "failure" && pc.roll.grade !== "partial") return;
-    // 禁忌交换：强制成功，腐化 +10
-    st.corruption = Math.min(100, st.corruption + 10);
-    log(st, "腐化 +10（禁忌交换）");
+    // 禁忌交换：强制成功；契约后代价降低（腐化 +5 而非 +10）
+    const contracted = st.companions.milena.contracted;
+    const cost = contracted ? 5 : 10;
+    st.corruption = Math.min(100, st.corruption + cost);
+    log(st, `腐化 +${cost}（禁忌交换${contracted ? " · ✨契约强化" : ""}）`);
     const newRoll: GradeRoll = { ...pc.roll, grade: "success" };
     set({
       state: st,

@@ -42,16 +42,31 @@ export default function ChoiceList() {
     return { text: c.text };
   };
 
+  // 选择类型图标：🎲检定 / 🔎秘密 / ✨契约招募 / ❤️关系 / 🌑腐化
+  const iconFor = (c: Choice): string | undefined => {
+    if (c.check) return undefined; // 已有 🎲 前缀
+    const all = [c.outcome, c.success, c.partial, c.failure].flatMap(
+      (o) => o?.effects ?? []
+    );
+    if (all.some((e) => e.type === "addSecret")) return "🔎";
+    if (all.some((e) => e.type === "contract" || e.type === "recruit")) return "✨";
+    if (all.some((e) => e.type === "trust" || e.type === "intimacy")) return "❤️";
+    if (all.some((e) => e.type === "corruption" && e.amount > 0)) return "🌑";
+    return undefined;
+  };
+
   return (
     <div className="choice-list">
       {choices.map((c) => {
         const { prefix, text } = labelFor(c);
+        const icon = iconFor(c);
         return (
           <button
             key={c.id}
             className="choice-btn"
             onClick={() => selectChoice(c)}
           >
+            {icon && <span className="choice-icon">{icon}</span>}
             {prefix && <span className="choice-prefix">{prefix}</span>}
             <span>{text}</span>
             {advancesTime(c) && (
