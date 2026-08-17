@@ -14,7 +14,7 @@ export const cathedralScenes: Scene[] = [
       {
         id: "church_001_a",
         text: "撬开那口铁柜。",
-        check: { stat: "agility", modifier: 1, companion: "lia" },
+        check: { stat: "agility", modifier: 1, companion: "lia", tags: ["stealth"] },
         success: {
           text: "锁应声而开。柜里躺着一卷发黄的羊皮纸，上面用帝国古语写着：“龙卵入城，为城之血。今封印地下，禁人查问。”落款是几十年前的第一任圣堂大主教。",
           effects: [
@@ -44,7 +44,7 @@ export const cathedralScenes: Scene[] = [
       {
         id: "church_001_b",
         text: "让米蕾娜用魔力探查铁柜。",
-        check: { stat: "knowledge", modifier: 1, companion: "milena" },
+        check: { stat: "knowledge", modifier: 1, companion: "milena", tags: ["ancient"] },
         success: {
           text: "米蕾娜闭眼，指尖泛起幽蓝的光。片刻后她睁眼，声音发颤：“里面……有一卷‘龙卵封印’的记录。地下那东西，不是普通能源——它是有生命的。而且，”她顿了一下，“它一直在痛苦地跳动着。”",
           effects: [
@@ -75,7 +75,7 @@ export const cathedralScenes: Scene[] = [
       {
         id: "church_001_c",
         text: "翻阅柜旁那堆散落的档案。",
-        check: { stat: "knowledge", modifier: 0 },
+        check: { stat: "knowledge", modifier: 0, tags: ["ancient"] },
         success: {
           text: "你在散落的档案里翻出一份几十年前的‘圣堂内部纪要’，措辞隐晦，大意是：圣堂早已知道地下能源的真相，但为了不让信徒恐慌，选择用‘神罚’叙事掩盖了几十年。",
           effects: [
@@ -123,6 +123,7 @@ export const cathedralScenes: Scene[] = [
             { type: "trust", id: "milena", amount: 8 },
             { type: "intimacy", id: "milena", amount: 3 },
             { type: "setFlag", key: "church_main_done", value: true },
+            { type: "recruit", id: "milena" },
             { type: "advanceTime" },
             { type: "setScene", id: "location_hub" },
           ],
@@ -136,6 +137,7 @@ export const cathedralScenes: Scene[] = [
           effects: [
             { type: "trust", id: "milena", amount: 5 },
             { type: "setFlag", key: "church_main_done", value: true },
+            { type: "recruit", id: "milena" },
             { type: "advanceTime" },
             { type: "setScene", id: "location_hub" },
           ],
@@ -149,6 +151,7 @@ export const cathedralScenes: Scene[] = [
           effects: [
             { type: "trust", id: "milena", amount: -3 },
             { type: "setFlag", key: "church_main_done", value: true },
+            { type: "recruit", id: "milena" },
             { type: "advanceTime" },
             { type: "setScene", id: "location_hub" },
           ],

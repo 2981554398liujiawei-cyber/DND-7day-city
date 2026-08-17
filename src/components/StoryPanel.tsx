@@ -78,6 +78,13 @@ export default function StoryPanel() {
           <p key={i}>{p}</p>
         ))}
       </div>
+      {state.corruption >= 20 && (
+        <div className={`corruption-whisper${state.corruption >= 40 ? " strong" : ""}`}>
+          {state.corruption >= 40
+            ? "低语在耳边盘旋：『汝的血脉……与深渊共鸣。代价已付，力量将至。』你体内的黑暗，正在醒来。"
+            : "不知从何处，传来一句若有若无的龙语低语，你听不清内容，只觉得心底一片冰凉。"}
+        </div>
+      )}
       <ChoiceList />
     </main>
   );

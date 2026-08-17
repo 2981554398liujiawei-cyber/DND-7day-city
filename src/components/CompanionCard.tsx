@@ -1,6 +1,7 @@
 import { COMPANIONS } from "../data/companions";
 import type { CompanionId } from "../types/game";
 import { useGameStore } from "../store/gameStore";
+import { contractStatus } from "../engine/contract";
 
 export default function CompanionCard({ id }: { id: CompanionId }) {
   const state = useGameStore((s) => s.state);
@@ -10,14 +11,21 @@ export default function CompanionCard({ id }: { id: CompanionId }) {
   if (!def || !cs.met) return null;
 
   const stage =
-    cs.trust >= 80 ? "羁绊"
-    : cs.trust >= 60 ? "契约伙伴"
-    : cs.trust >= 40 ? "盟友"
+    cs.trust >= 80 ? "生死之交"
+    : cs.trust >= 60 ? "深厚羁绊"
+    : cs.trust >= 40 ? "信赖"
     : cs.trust >= 20 ? "熟悉"
     : "陌生";
 
+  const cstatus = contractStatus(id, state);
+  const inParty = state.party.includes(id);
+  const contractBadge =
+    cstatus === "contracted" ? "✨ 已契约"
+    : cstatus === "ready" ? "✨ 可缔结契约"
+    : "契约：尚未就绪";
+
   return (
-    <div className="companion-card">
+    <div className={`companion-card${inParty ? " in-party" : ""}`}>
       <div className="companion-head">
         <span className="avatar" style={{ background: def.color }}>
           {def.avatarChar}
@@ -26,6 +34,7 @@ export default function CompanionCard({ id }: { id: CompanionId }) {
           <div className="companion-name">{def.name}</div>
           <div className="companion-job">{def.job} · {def.role}</div>
         </div>
+        {inParty && <span className="party-tag">在队</span>}
       </div>
       <div className="rel-bars">
         <div className="rel-bar">
@@ -41,7 +50,10 @@ export default function CompanionCard({ id }: { id: CompanionId }) {
       </div>
       <div className="companion-stage">
         关系：{stage}
-        {cs.contracted ? " · ✨ 已契约" : ""}
+        {cs.contracted && " · ✨ 已契约"}
+      </div>
+      <div className={`contract-badge ${cstatus === "ready" ? "ready" : ""}`}>
+        {contractBadge}
       </div>
     </div>
   );

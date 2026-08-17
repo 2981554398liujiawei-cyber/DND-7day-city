@@ -1,7 +1,20 @@
 import { useGameStore } from "../store/gameStore";
 import { getAvailableChoices } from "../engine/sceneEngine";
 import { STAT_LABELS } from "../engine/checks";
-import type { Choice } from "../types/game";
+import type { Choice, Outcome } from "../types/game";
+
+/** 该选择是否会推进时间（检查所有可能 outcome 的 effects） */
+function advancesTime(c: Choice): boolean {
+  const outcomes: Array<Outcome | undefined> = [
+    c.outcome,
+    c.success,
+    c.partial,
+    c.failure,
+  ];
+  return outcomes.some(
+    (o) => o?.effects?.some((e) => e.type === "advanceTime") ?? false
+  );
+}
 
 export default function ChoiceList() {
   const state = useGameStore((s) => s.state);
@@ -41,6 +54,9 @@ export default function ChoiceList() {
           >
             {prefix && <span className="choice-prefix">{prefix}</span>}
             <span>{text}</span>
+            {advancesTime(c) && (
+              <span className="time-hint">⏳ 此行动将推进时间</span>
+            )}
           </button>
         );
       })}

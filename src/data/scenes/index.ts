@@ -1,9 +1,13 @@
 import type { Scene } from "../../types/game";
 import { introScenes } from "./intro";
 import { tavernScenes } from "./tavern";
+import { tavernD2Scenes } from "./tavernD2";
 import { blackStreetScenes } from "./blackStreet";
+import { blackStreetD2Scenes } from "./blackStreetD2";
 import { royalDistrictScenes } from "./royalDistrict";
+import { royalDistrictD2Scenes } from "./royalDistrictD2";
 import { cathedralScenes } from "./cathedral";
+import { cathedralD2Scenes } from "./cathedralD2";
 import { undergroundScenes } from "./underground";
 import { companionEventsScenes } from "./companionEvents";
 import { campScenes } from "./camp";
@@ -13,9 +17,13 @@ import { finaleScenes } from "./finale";
 export const ALL_SCENES: Scene[] = [
   ...introScenes,
   ...tavernScenes,
+  ...tavernD2Scenes,
   ...blackStreetScenes,
+  ...blackStreetD2Scenes,
   ...royalDistrictScenes,
+  ...royalDistrictD2Scenes,
   ...cathedralScenes,
+  ...cathedralD2Scenes,
   ...undergroundScenes,
   ...companionEventsScenes,
   ...campScenes,

@@ -27,7 +27,7 @@ export const blackStreetScenes: Scene[] = [
       {
         id: "blackstreet_001_b",
         text: "问老头，城里的权贵们都在买什么。",
-        check: { stat: "finesse", modifier: 1 },
+        check: { stat: "finesse", modifier: 1, tags: ["social"] },
         success: {
           text: "老头眯眼：“王室在买‘屠龙师’的联络方式；圣堂在买‘龙卵’这个词——出价高得吓人；法师学院……他们在买旧的实验记录，专挑能抹掉的那种。”",
           effects: [
@@ -50,7 +50,7 @@ export const blackStreetScenes: Scene[] = [
       {
         id: "blackstreet_001_c",
         text: "注意莉娅听到这些话时的反应。",
-        check: { stat: "insight", modifier: 1 },
+        check: { stat: "insight", modifier: 1, tags: ["social"] },
         success: {
           text: "提到‘法师学院的实验记录’时，莉娅的手指在硬币上停了一瞬——只一瞬，又若无其事地转起来。你察觉，她知道的比她说出来的多得多。",
           effects: [
@@ -73,7 +73,7 @@ export const blackStreetScenes: Scene[] = [
       {
         id: "blackstreet_001_d",
         text: "向老头打听地下魔力核心怎么进。",
-        check: { stat: "agility", modifier: 1 },
+        check: { stat: "agility", modifier: 1, tags: ["stealth"] },
         success: {
           text: "老头伸出三根手指：“往东三条街，有口枯井，井底铁栅上挂着锈锁。那下面是法师的老管线——没几个人敢走，但你要是有胆子，够你摸到核心边上。”",
           effects: [
@@ -120,6 +120,7 @@ export const blackStreetScenes: Scene[] = [
           effects: [
             { type: "addSecret", key: "royal_plan_destroy_dragon" },
             { type: "setFlag", key: "blackstreet_main_done", value: true },
+            { type: "recruit", id: "lia" },
             { type: "advanceTime" },
             { type: "setScene", id: "location_hub" },
           ],
@@ -134,6 +135,7 @@ export const blackStreetScenes: Scene[] = [
           effects: [
             { type: "trust", id: "lia", amount: -2 },
             { type: "setFlag", key: "blackstreet_main_done", value: true },
+            { type: "recruit", id: "lia" },
             { type: "advanceTime" },
             { type: "setScene", id: "location_hub" },
           ],
@@ -149,6 +151,7 @@ export const blackStreetScenes: Scene[] = [
             { type: "trust", id: "lia", amount: 3 },
             { type: "setFlag", key: "lia_agreed_talk", value: true },
             { type: "setFlag", key: "blackstreet_main_done", value: true },
+            { type: "recruit", id: "lia" },
             { type: "advanceTime" },
             { type: "setScene", id: "location_hub" },
           ],

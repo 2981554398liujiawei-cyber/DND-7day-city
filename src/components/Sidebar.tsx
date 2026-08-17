@@ -1,6 +1,6 @@
 import { useGameStore } from "../store/gameStore";
 import { COMPANIONS, ORIGINS } from "../data/companions";
-import { periodLabel } from "../data/time";
+import { periodLabel, PERIOD_ORDER } from "../data/time";
 import { secretTitle } from "../data/secrets";
 import { getScene } from "../data/scenes";
 
@@ -13,6 +13,8 @@ export default function Sidebar() {
   const period = periodLabel(state.periodIndex);
 
   const stats = state.player.stats;
+  const finaleIndex = PERIOD_ORDER.indexOf("finale");
+  const periodsLeft = Math.max(0, finaleIndex - state.periodIndex);
 
   return (
     <aside className="sidebar">
@@ -23,6 +25,9 @@ export default function Sidebar() {
         <div className="time-display">
           <span className="time-icon">⏳</span>
           {period}
+        </div>
+        <div className="time-left">
+          距离龙临：{periodsLeft === 0 ? "就在此刻" : `${periodsLeft} 个行动时段`}
         </div>
         <div className="resource-row">
           <span title="金币">🪙 {state.gold}</span>
@@ -67,6 +72,27 @@ export default function Sidebar() {
             </div>
           );
         })}
+      </div>
+
+      <div className="sidebar-section">
+        <h3>调查进度</h3>
+        <div className="investigation-list">
+          <div className={state.flags.blackstreet_main_done ? "done" : ""}>
+            {state.flags.blackstreet_main_done ? "✓" : "○"} 黑街
+            {state.flags.blackstreet_d2_done && <span className="new-tag">● 局势有变</span>}
+          </div>
+          <div className={state.flags.royal_main_done ? "done" : ""}>
+            {state.flags.royal_main_done ? "✓" : "○"} 王城
+            {state.flags.royal_d2_done && <span className="new-tag">● 局势有变</span>}
+          </div>
+          <div className={state.flags.church_main_done ? "done" : ""}>
+            {state.flags.church_main_done ? "✓" : "○"} 圣堂
+            {state.flags.church_d2_done && <span className="new-tag">● 局势有变</span>}
+          </div>
+          <div className={state.flags.underground_main_done ? "done" : ""}>
+            {state.flags.underground_main_done ? "✓" : "○"} 地下核心
+          </div>
+        </div>
       </div>
 
       <div className="sidebar-section">
