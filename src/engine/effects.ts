@@ -1,4 +1,11 @@
-import type { Effect, GameStateData } from "../types/game";
+import type { Effect, GameStateData, CompanionId } from "../types/game";
+import { COMPANIONS } from "../data/companions";
+
+const COMPANION_NAME: Record<CompanionId, string> = {
+  serena: COMPANIONS.serena.name,
+  lia: COMPANIONS.lia.name,
+  milena: COMPANIONS.milena.name,
+};
 
 export function clamp(v: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, v));
@@ -43,7 +50,7 @@ function applyEffect(e: Effect, state: GameStateData, logs: string[]) {
         c.trust = clamp(c.trust + e.amount, 0, 100);
         const delta = c.trust - before;
         if (delta !== 0) {
-          logs.push(`🤝 ${e.id} 信任 ${delta > 0 ? "+" : ""}${delta}`);
+          logs.push(`🤝 ${COMPANION_NAME[e.id]} 信任 ${delta > 0 ? "+" : ""}${delta}`);
         }
       }
       break;
@@ -55,7 +62,7 @@ function applyEffect(e: Effect, state: GameStateData, logs: string[]) {
         c.intimacy = clamp(c.intimacy + e.amount, 0, 100);
         const delta = c.intimacy - before;
         if (delta !== 0) {
-          logs.push(`❤️ ${e.id} 亲密 ${delta > 0 ? "+" : ""}${delta}`);
+          logs.push(`❤️ ${COMPANION_NAME[e.id]} 亲密 ${delta > 0 ? "+" : ""}${delta}`);
         }
       }
       break;
@@ -78,7 +85,7 @@ function applyEffect(e: Effect, state: GameStateData, logs: string[]) {
         if (state.party.length < 2 && !state.party.includes(e.id)) {
           state.party.push(e.id);
         }
-        logs.push(`📜 ${e.id} 加入队伍`);
+        logs.push(`📜 ${COMPANION_NAME[e.id]} 加入队伍`);
       }
       break;
     }
@@ -86,20 +93,20 @@ function applyEffect(e: Effect, state: GameStateData, logs: string[]) {
       const c = state.companions[e.id];
       if (c && c.recruited && !state.party.includes(e.id) && state.party.length < 2) {
         state.party.push(e.id);
-        logs.push(`📜 ${e.id} 加入队伍`);
+        logs.push(`📜 ${COMPANION_NAME[e.id]} 加入队伍`);
       }
       break;
     }
     case "leaveParty": {
       state.party = state.party.filter((id) => id !== e.id);
-      logs.push(`👋 ${e.id} 暂时离队`);
+      logs.push(`👋 ${COMPANION_NAME[e.id]} 暂时离队`);
       break;
     }
     case "contract": {
       const c = state.companions[e.id];
       if (c) {
         c.contracted = true;
-        logs.push(`✨ 与 ${e.id} 建立契约`);
+        logs.push(`✨ 与 ${COMPANION_NAME[e.id]} 建立契约`);
       }
       break;
     }

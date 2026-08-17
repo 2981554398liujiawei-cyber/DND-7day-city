@@ -5,6 +5,7 @@
   --bg-parchment: #f0e6d0;
   --ink: #e8dcc0;
   --ink-dim: #a99f8a;
+  --ink-faint: #756d5f;
   --gold: #c9a24b;
   --gold-bright: #e8c46a;
   --red: #a34a3a;
@@ -147,6 +148,28 @@ button {
 .origin-special {
   font-size: 0.8rem;
   color: var(--blue);
+}
+
+.origin-stats {
+  font-size: 0.85rem;
+  color: var(--gold);
+  letter-spacing: 0.05em;
+}
+
+.game-version {
+  font-size: 0.72rem;
+  color: var(--ink-faint);
+  letter-spacing: 0.25em;
+  margin-top: -20px;
+  margin-bottom: 24px;
+}
+
+.game-subtitle-en {
+  display: block;
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  color: var(--ink-faint);
+  margin-top: 4px;
 }
 
 /* ============ 按钮 ============ */
@@ -347,6 +370,32 @@ button {
   letter-spacing: 0.08em;
 }
 
+/* 地点 + 时段标题（V0.3） */
+.location-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 14px;
+  margin-bottom: 14px;
+  background: rgba(38, 32, 25, 0.6);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--gold);
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+}
+
+.location-name {
+  color: var(--gold-bright);
+  letter-spacing: 0.1em;
+}
+
+.location-time {
+  color: var(--ink-dim);
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
 .story-text p {
   margin-bottom: 14px;
   color: var(--ink);
@@ -383,6 +432,12 @@ button {
 .choice-prefix {
   color: var(--gold);
   font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.choice-icon {
+  color: var(--blue);
+  font-size: 0.9rem;
   white-space: nowrap;
 }
 
@@ -643,6 +698,42 @@ button {
   margin-top: 26px;
   display: flex;
   justify-content: center;
+  gap: 12px;
+}
+
+/* 本局档案（V0.3） */
+.ending-dossier {
+  margin: 18px 0 24px;
+  padding: 14px 16px;
+  background: rgba(38, 32, 25, 0.6);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 18px;
+}
+
+.dossier-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.85rem;
+}
+
+.dossier-row span {
+  color: var(--ink-dim);
+}
+
+.dossier-row b {
+  color: var(--gold-bright);
+  font-weight: 600;
+  text-align: right;
+}
+
+@media (max-width: 480px) {
+  .ending-dossier {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ============ 响应式 ============ */
