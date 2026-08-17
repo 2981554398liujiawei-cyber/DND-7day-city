@@ -271,6 +271,81 @@ describe("store 集成流程", () => {
     click("ending_corruption_continue");
     expect(useGameStore.getState().state!.currentSceneId).toBe("ending_screen");
   });
+
+  it("V0.4 Phase11：V0.3 真实流程存档 → V0.4 continueGame 成功并继续通关", () => {
+    useGameStore.getState().newGame("测试者", "mercenary");
+    // 走 Route A 到契约后（d2_night，persist 已写入 localStorage）
+    click("intro_001_c");
+    click("intro_002_a");
+    click("intro_003_a");
+    click("intro_004_a");
+    click("hub_royal_d1");
+    click("royal_001_c");
+    click("royal_002_a");
+    click("hub_blackstreet_d1");
+    click("blackstreet_001_a");
+    click("blackstreet_002_a");
+    click("hub_camp_d1");
+    click("camp_night_serena");
+    click("serena_personal_001_a");
+    click("companion_event_end_a");
+    click("camp_night_rest");
+    // DAY2 上午：王城危险事件（真实检定 → alert 自然增加）
+    click("hub_royal_d2");
+    click("royal_d2_001_a");
+    click("royal_d2_danger_a");
+    click("hub_tavern_d2");
+    click("tavern_d2_001_e");
+    click("tavern_d2_002_b");
+    click("hub_camp_d2");
+    click("camp_night_serena_rel2");
+    click("serena_rel2_001_a");
+    click("companion_event_end_a");
+    click("camp_night_serena_contract");
+    click("serena_contract_001_a");
+    click("companion_event_end_a");
+    // 存档内容符合 V0.3 fixture 要求：DAY2 + 2 伙伴 + personal 完成 + secrets + 非初始资源
+    const saved = JSON.parse(mem.get("seven-day-city-save-v1")!);
+    expect(saved.version).toBe(1);
+    expect(saved.periodIndex).toBe(PERIOD_ORDER.indexOf("d2_night"));
+    expect(saved.party.length).toBe(2);
+    expect(saved.companions.serena.personalQuestComplete).toBe(true);
+    expect(saved.companions.serena.contracted).toBe(true);
+    expect(saved.secrets.length).toBeGreaterThan(0);
+    expect(saved.alert).toBeGreaterThan(0);
+    // 模拟刷新：清空内存，V0.4 从存档恢复
+    useGameStore.setState({ state: null, screen: "start", outcome: null, pending: null });
+    expect(useGameStore.getState().continueGame()).toBe(true);
+    const s = useGameStore.getState().state!;
+    expect(s.periodIndex).toBe(PERIOD_ORDER.indexOf("d2_night"));
+    expect(s.companions.serena.contracted).toBe(true);
+    expect(s.party).toEqual(["serena", "lia"]);
+    expect(s.currentSceneId).toBe("camp_night");
+    // 继续走到 ending
+    click("camp_night_rest");
+    click("hub_finale");
+    click("finale_royal_hunt");
+    click("ending_royal_continue");
+    expect(useGameStore.getState().state!.currentSceneId).toBe("ending_screen");
+  });
+
+  it("V0.4 Phase12：损坏存档安全回标题（非法 JSON / 缺失 state / 版本不支持）", () => {
+    // 非法 JSON
+    mem.set("seven-day-city-save-v1", "{not valid json");
+    expect(useGameStore.getState().continueGame()).toBe(false);
+    expect(useGameStore.getState().screen).toBe("start");
+    // 缺失关键字段（player 为 null）
+    mem.set("seven-day-city-save-v1", JSON.stringify({ version: 1, player: null }));
+    expect(useGameStore.getState().continueGame()).toBe(false);
+    expect(useGameStore.getState().screen).toBe("start");
+    // 不支持的 version
+    mem.set(
+      "seven-day-city-save-v1",
+      JSON.stringify({ version: 99, player: {}, companions: {}, party: [] })
+    );
+    expect(useGameStore.getState().continueGame()).toBe(false);
+    expect(useGameStore.getState().screen).toBe("start");
+  });
 });
 
 /**
@@ -773,6 +848,8 @@ describe("通关模拟", () => {
     s.companions.milena.recruited = true;
     s.party = ["milena"];
     s.currentSceneId = "finale_001";
+    // 测试自包含：把本地状态注入 store（此前依赖前一个测试的残留状态）
+    useGameStore.setState({ state: s, screen: "game", outcome: null, pending: null });
     // 首次：选项可用
     let choices = getAvailableChoices("finale_001", s);
     expect(choices.some((c) => c.id === "finale_dragon_contract")).toBe(true);
@@ -965,7 +1042,7 @@ describe("通关模拟", () => {
     s1.currentSceneId = "tavern_001";
     const c1 = getAvailableChoices("tavern_001", s1).map((c) => c.id);
     expect(c1).toContain("tavern_001_d");
-    const r = resolveChoice(getScene("tavern_001").choices.find((c) => c.id === "tavern_001_d")!, s1);
+    resolveChoice(getScene("tavern_001").choices.find((c) => c.id === "tavern_001_d")!, s1);
     expect(s1.gold).toBe(40);
     expect(s1.flags.tavern_heard_rumors).toBe(true);
     // 钱不足（0）：不出现
@@ -1022,10 +1099,10 @@ describe("通关模拟", () => {
   });
 
   it("V0.4 Phase6：剧情中真实存在 combat / ancient / social 三类检定（供出身能力触发）", () => {
-    const collect = (tag: string) =>
+    const collect = (tag: import("../types/game").CheckTag) =>
       ALL_SCENES.flatMap((sc) =>
         sc.choices
-          .filter((c) => c.check?.tags.includes(tag))
+          .filter((c) => c.check?.tags?.includes(tag))
           .map((c) => `${sc.id}:${c.id}`)
       );
     const combat = collect("combat");
