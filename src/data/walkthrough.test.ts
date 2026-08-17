@@ -209,7 +209,17 @@ function walk(
 
     const wanted = path[idx];
     let choice: Choice | undefined;
-    if (wanted) {
+    if (wanted === "FORCE_FAIL") {
+      // 下一个检定强制失败（random 0 → 失败），并继续用原策略
+      idx++;
+      const nextWanted = path[idx];
+      choice = choices.find((c) => c.id === nextWanted);
+      if (!choice) {
+        throw new Error(`FORCE_FAIL: 在 ${sceneId} 找不到选项 ${nextWanted}（可用: ${choices.map((c) => c.id).join(", ")}）`);
+      }
+      idx++;
+      vi.spyOn(Math, "random").mockReturnValue(0.001);
+    } else if (wanted) {
       choice = choices.find((c) => c.id === wanted);
       if (!choice) {
         throw new Error(`在 ${sceneId} 找不到选项 ${wanted}（可用: ${choices.map((c) => c.id).join(", ")}）`);
@@ -222,7 +232,7 @@ function walk(
       choice = choices[0];
     }
 
-    if (choice.check && opts.forceSuccess) {
+    if (choice.check && opts.forceSuccess && !vi.isMockFunction(Math.random)) {
       // 让骰子总和 >= 12 必成功
       vi.spyOn(Math, "random").mockReturnValue(0.99);
     }
@@ -321,6 +331,7 @@ describe("通关模拟", () => {
       // 最终
       "hub_finale",
       "finale_dragon_contract",
+      "finale_dragon_contract_attempt_a", // 意志检定（forceSuccess → 成功）
       "ending_dragon_contract_continue",
     ];
     const { state: final, visited } = walk(s, path, { forceSuccess: true });
@@ -414,6 +425,75 @@ describe("通关模拟", () => {
     expect(campChoices.some((c) => c.id === "camp_night_serena_rel2")).toBe(false);
     // 个人事件仍可选
     expect(campChoices.some((c) => c.id === "camp_night_serena")).toBe(true);
+  });
+
+  it("Route F：Failure Run —— 多次主动失败后仍能通关", () => {
+    const s = makeState();
+    const path = [
+      "intro_001_c",
+      "intro_002_a",
+      "intro_003_a",
+      "intro_004_a",
+      // 黑街：选检定选项（强制失败）
+      "hub_blackstreet_d1",
+      "blackstreet_001_b", // 潜入窃听（失败 → 无秘密，也无地下线索）
+      "blackstreet_002_a",
+      // 王城：检定选项强制失败
+      "hub_royal_d1",
+      "royal_001_a", // 打听密令（失败）
+      "royal_002_a",
+      // 推进时间到 finale
+      "PUSH_TIME",
+      // 最终：默认王室路线（无秘密也有选项）
+      "hub_finale",
+      "finale_royal_hunt",
+      "ending_royal_continue",
+    ];
+    // 强制所有检定失败（random 返回 0 → 骰子 0+0+修正 < 6）
+    vi.spyOn(Math, "random").mockReturnValue(0.001);
+    const { state: final, visited } = walk(s, path, { forceSuccess: false });
+    vi.restoreAllMocks();
+    expect(final.currentSceneId).toBe("ending_screen");
+    expect(visited).toContain("ending_royal");
+    // 失败后秘密很少，但游戏仍可完成
+    expect(final.secrets.length).toBeLessThan(4);
+  });
+
+  it("龙之契约失败：意志检定失败后仍可走其他结局（不死路）", () => {
+    const s = makeState();
+    const path = [
+      "intro_001_c",
+      "intro_002_c",
+      "intro_003_c",
+      "intro_004_c",
+      // 圣堂（米蕾娜秘密线索）
+      "hub_church_d1",
+      "church_001_b",
+      "church_002_a",
+      // 黑街（地下线索）
+      "hub_blackstreet_d1",
+      "blackstreet_001_d",
+      "blackstreet_002_a",
+      // 地下（共鸣）
+      "hub_underground",
+      "underground_001_b",
+      "underground_002_b",
+      // 推进到 finale
+      "PUSH_TIME",
+      "hub_finale",
+      "finale_dragon_contract",
+      // 意志检定强制失败 → 回 finale_001
+      "FORCE_FAIL",
+      "finale_dragon_contract_attempt_a",
+      // 失败后改走王室路线
+      "finale_royal_hunt",
+      "ending_royal_continue",
+    ];
+    // FORCE_FAIL 之前的检定全部成功
+    const { state: final, visited } = walk(s, path, { forceSuccess: true });
+    expect(final.currentSceneId).toBe("ending_screen");
+    expect(visited).toContain("ending_royal");
+    expect(visited).not.toContain("ending_dragon_contract");
   });
 
   it("所有场景（除结局中间态）都不是死路：至少有一个可选项或 nextScene 链", () => {

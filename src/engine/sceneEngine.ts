@@ -84,6 +84,10 @@ export function gradeRollForChoice(
   if (state.player.origin === "scholar" && tags.includes("ancient")) {
     modifier += 1;
   }
+  // 警戒 ≥ 30：高风险行动 -1
+  if (choice.check?.alertPenalty && state.alert >= 30) {
+    modifier -= 1;
+  }
   const roll = rollCheck(statValue, modifier);
   return {
     grade: roll.grade,

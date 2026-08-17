@@ -39,21 +39,79 @@ export const finaleScenes: Scene[] = [
       },
       {
         id: "finale_mage_true",
-        text: "🔎【秘密：法师曾拿龙卵做实验】揭露法师学院的恶行，由你主导龙卵的处置。",
+        text: "🔎【秘密：法师曾拿龙卵做实验】拿着罪证，迫使法师学院接受你的条件——龙卵由你监督，魔力供给公开透明。",
         conditions: [{ type: "secret", key: "mages_experimented_on_egg" }],
         outcome: {
-          nextScene: "ending_mage",
+          nextScene: "ending_mage_truth",
         },
       },
       {
         id: "finale_dragon_contract",
-        text: "🔎【隐藏·龙之契约】尝试与古龙立约，让龙卵留下、由龙定期供给魔力。",
+        text: "🔎【隐藏·龙之契约】与古龙立约，让龙卵留下、由龙定期供给魔力。",
         conditions: [
           { type: "secret", key: "milena_connected_to_egg" },
+          { type: "flag", key: "bonded_with_egg", value: true },
           { type: "companionInParty", id: "milena" },
         ],
         outcome: {
+          nextScene: "finale_dragon_contract_attempt",
+        },
+      },
+      {
+        id: "finale_corruption_power",
+        text: "🌑【腐化·危险魔法】撕开龙卵的魔力，强行把整座城的能源与你相连——以你的血肉为代价。",
+        conditions: [{ type: "corruption", min: 40 }],
+        outcome: {
+          nextScene: "ending_corruption",
+        },
+      },
+    ],
+  },
+
+  {
+    id: "finale_dragon_contract_attempt",
+    title: "龙之契约 · 意志的试炼",
+    text: [
+      "你走向那头庞大的古龙。它垂下头，琥珀色的竖瞳里映出你的身影——与你掌心那枚龙卵的共鸣，正是你在地下建立的那一丝联系。",
+      "米蕾娜站在你身侧，指尖泛着幽蓝的光。你向古龙提出那道前所未有的契约：龙卵留下，作为城市运转的核心；而古龙定期归来供给魔力，人类逐步停止榨取它孩子的生命。",
+      "古龙久久凝视着你。它的意志如深潭般压下来——那不是攻击，而是审判。它在衡量，你是否有资格成为这道契约的见证者。",
+    ],
+    location: "finale",
+    choices: [
+      {
+        id: "finale_dragon_contract_attempt_a",
+        text: "🎲【意志·ancient】挺直脊背，与古龙的意志正面相对。",
+        check: { stat: "will", modifier: 0, tags: ["ancient"] },
+        success: {
+          text: "你的意志如钢般稳固。古龙的目光从审视变为接纳——它低下头，与你立下契约。当契约之光散尽，你感到米蕾娜紧紧握住了你的手，她的眼里，是得偿所愿的明亮的光。",
+          effects: [
+            { type: "setFlag", key: "dragon_contract_made", value: true },
+          ],
           nextScene: "ending_dragon_contract",
+        },
+        partial: {
+          text: "古龙的意志压得你膝盖发软，但你终究没有后退。契约成立，却带着代价——你的灵魂深处，留下了一道龙血的烙印。从此，龙卵继续运转城市，而你体内那股被强行引导的魔力，将永远伴随着你。",
+          effects: [
+            { type: "setFlag", key: "dragon_contract_made", value: true },
+            { type: "corruption", amount: 15 },
+          ],
+          nextScene: "ending_dragon_contract",
+        },
+        failure: {
+          text: "古龙的意志如潮水般吞没你。你踉跄后退，脸色惨白——契约无法成立。古龙失望地移开目光，缓缓退向天际。你回到城头，必须在剩下的选择里，重新决定这座城的命运。",
+          effects: [
+            { type: "corruption", amount: 5 },
+          ],
+          nextScene: "finale_001",
+        },
+      },
+      {
+        id: "finale_dragon_contract_attempt_b",
+        text: "放弃契约——你承受不住这股意志。",
+        outcome: {
+          text: "你退后一步，承认自己无法承担这样的重量。古龙没有为难你，只是垂下眼帘，缓缓退向天际。你回到城头，重新决定这座城的命运。",
+          effects: [],
+          nextScene: "finale_001",
         },
       },
     ],
@@ -113,6 +171,48 @@ export const finaleScenes: Scene[] = [
     choices: [
       {
         id: "ending_mage_continue",
+        text: "（继续）",
+        outcome: {
+          nextScene: "ending_screen",
+        },
+      },
+    ],
+  },
+
+  {
+    id: "ending_mage_truth",
+    title: "结局 · 受约束的魔法革命",
+    text: [
+      "你走进法师学院那扇紧锁的大门，将那份染血的实验档案拍在首席法师的桌上。他的脸色，在看到档案的瞬间变得煞白。",
+      "“龙卵是活的生命，不是你们的电池。”你平静地说，“从今天起，魔力的抽取必须公开、限量、可核查。学院的每一笔‘实验’，都要接受监督。”",
+      "首席法师沉默良久，最终签下了这份让步书。学院保住了面子，你保住了底线——龙卵继续运转城市，但从此，没有人能再把它当作沉默的牺牲品。",
+      "这不算完美的胜利。但至少，下一次有人想‘研究’这枚卵时，必须先回答你的问题。",
+    ],
+    location: "finale",
+    choices: [
+      {
+        id: "ending_mage_truth_continue",
+        text: "（继续）",
+        outcome: {
+          nextScene: "ending_screen",
+        },
+      },
+    ],
+  },
+
+  {
+    id: "ending_corruption",
+    title: "结局 · 城与血",
+    text: [
+      "你撕开龙卵的魔力，让整座城的能源顺着你的血脉奔涌。灯光骤亮，全城陷入刺目的白昼——然后，一切归于沉寂。",
+      "龙卵的共鸣彻底熄灭了。古龙在远处发出一声悲恸的咆哮，却没有靠近。它知道，自己的孩子已经死了。",
+      "城市得救了——没有龙临，没有战争。但地下的核心从此冰冷，魔法灯一盏盏熄灭。而你在那个瞬间清楚地听见，自己体内，多了一道永远无法愈合的裂缝。",
+      "阿斯特拉重新点起了蜡烛。人们感谢你。只有你知道，那枚卵里最后的心跳，是为你而停的。",
+    ],
+    location: "finale",
+    choices: [
+      {
+        id: "ending_corruption_continue",
         text: "（继续）",
         outcome: {
           nextScene: "ending_screen",

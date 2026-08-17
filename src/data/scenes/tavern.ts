@@ -37,6 +37,20 @@ export const tavernScenes: Scene[] = [
           nextScene: "tavern_002",
         },
       },
+      {
+        id: "tavern_001_d",
+        text: "花 10 金币，请酒保透露一些只有熟客才知道的消息。",
+        conditions: [{ type: "gold", min: 10 }],
+        outcome: {
+          text: "酒保收下金币，压低声音：“看你是个有心人。听好了——王宫地下的能源，不是挖出来的矿。几十年前，有一样东西被运进城，从此全城的灯都亮了。至于是什么……”他指了指脚下，“下去问问就知道了。”",
+          effects: [
+            { type: "gold", amount: -10 },
+            { type: "setFlag", key: "underground_hint", value: true },
+            { type: "setFlag", key: "tavern_heard_rumors", value: true },
+          ],
+          nextScene: "tavern_002",
+        },
+      },
     ],
   },
   {

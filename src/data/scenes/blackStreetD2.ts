@@ -108,7 +108,7 @@ export const blackStreetD2Scenes: Scene[] = [
       {
         id: "blackstreet_d2_danger_b",
         text: "🐈【身手·stealth】从屋顶绕过去。",
-        check: { stat: "agility", modifier: 0, tags: ["stealth"] },
+        check: { stat: "agility", modifier: 0, tags: ["stealth"], alertPenalty: true },
         success: {
           text: "你借着屋檐与晾衣绳的掩护，像一只无声的猫从屋顶掠过。下面的骚乱与你无关，你稳稳落在封锁线另一侧。",
           effects: [
