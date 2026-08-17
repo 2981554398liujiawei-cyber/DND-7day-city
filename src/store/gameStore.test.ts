@@ -80,7 +80,7 @@ describe("出身能力", () => {
     expect(after.roll.grade).toBe("failure");
   });
 
-  it("骗徒：social 失败可重掷一次", () => {
+  it("骗徒：social 失败可重掷一次，随后不再可用", () => {
     newGame("trickster");
     const pc = rollWith(0, 0, makeChoice(["social"], "finesse"));
     expect(pc.roll.grade).toBe("failure");
@@ -89,6 +89,12 @@ describe("出身能力", () => {
     vi.restoreAllMocks();
     const after = useGameStore.getState().pending!;
     expect(after.roll.grade).not.toBe("failure");
+    expect(useGameStore.getState().state!.flags.origin_reroll_used).toBe(true);
+    // 第二次 social 失败：不可再重掷
+    const pc2 = rollWith(0, 0, makeChoice(["social"], "finesse"));
+    expect(pc2.roll.grade).toBe("failure");
+    useGameStore.getState().useOriginReroll();
+    expect(useGameStore.getState().pending!.roll.grade).toBe("failure");
   });
 
   it("骗徒：combat 检定失败不可重掷", () => {

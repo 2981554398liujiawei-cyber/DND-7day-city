@@ -28,7 +28,7 @@ export const companionEventsScenes: Scene[] = [
       },
       {
         id: "serena_personal_001_b",
-        text: "问她，如果明天龙来时命令她杀龙，她会怎么做。",
+        text: "问她，如果龙临之时，王命让她杀龙，她会怎么做。",
         outcome: {
           text: "塞蕾娜沉默良久：“……如果龙真是来毁城的，我会挥剑。但如果它只是为了取回自己的孩子，”她握紧剑柄，“我要亲眼确认之后，才决定剑锋朝哪。”",
           effects: [
@@ -415,7 +415,7 @@ export const companionEventsScenes: Scene[] = [
           effects: [
             { type: "contract", id: "milena" },
             { type: "setFlag", key: "milena_contracted_event", value: true },
-            { type: "corruption", amount: 5 },
+            { type: "corruption", amount: 10 },
           ],
           nextScene: "companion_event_end",
         },

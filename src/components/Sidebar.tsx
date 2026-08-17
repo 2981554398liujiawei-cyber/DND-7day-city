@@ -3,6 +3,8 @@ import { COMPANIONS, ORIGINS } from "../data/companions";
 import { periodLabel, PERIOD_ORDER } from "../data/time";
 import { secretTitle } from "../data/secrets";
 import { getScene } from "../data/scenes";
+import { contractStatus } from "../engine/contract";
+import type { CompanionId } from "../types/game";
 
 export default function Sidebar() {
   const state = useGameStore((s) => s.state);
@@ -57,6 +59,7 @@ export default function Sidebar() {
           const c = COMPANIONS[id as keyof typeof COMPANIONS];
           if (!c) return null;
           const cs = state.companions[id as keyof typeof state.companions];
+          const cstatus = contractStatus(id as CompanionId, state);
           return (
             <div key={id} className="party-member">
               <span className="avatar" style={{ background: c.color }}>
@@ -66,7 +69,10 @@ export default function Sidebar() {
                 <span className="party-name">{c.name}</span>
                 <span className="party-job">{c.job}</span>
                 <span className="party-rel">
-                  {cs.contracted ? "✨ 已契约" : "盟友"} · 信任 {cs.trust} · 亲密 {cs.intimacy}
+                  {cstatus === "contracted" ? "✨ 已契约"
+                    : cstatus === "ready" ? "✨ 可缔结契约"
+                    : cstatus === "locked" ? "未结识"
+                    : "盟友"} · 信任 {cs.trust} · 亲密 {cs.intimacy}
                 </span>
               </div>
             </div>
