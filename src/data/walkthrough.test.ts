@@ -203,6 +203,74 @@ describe("store 集成流程", () => {
     expect(s.party.length).toBe(2);
     click("camp_select_party_done");
   });
+
+  it("V0.4 E6：腐化路线真实累计 ≥40 → Finale 腐化结局可达", () => {
+    useGameStore.getState().newGame("测试者", "scholar");
+    // 米蕾娜同行
+    click("intro_001_c");
+    click("intro_002_c");
+    click("intro_003_c");
+    click("intro_004_c");
+    // 圣堂：米蕾娜共鸣线索（echo 前置）
+    click("hub_church_d1");
+    click("church_001_b");
+    click("church_002_a");
+    // 黑街：地下线索（检定失败 → 禁忌交换 → 腐化 +10）
+    click("hub_blackstreet_d1");
+    vi.spyOn(Math, "random").mockReturnValue(0.001);
+    const st0 = useGameStore.getState().state!;
+    const ch0 = getAvailableChoices(st0.currentSceneId, st0).find(
+      (c) => c.id === "blackstreet_001_d"
+    )!;
+    useGameStore.getState().selectChoice(ch0);
+    let g = useGameStore.getState();
+    expect(g.pending).toBeTruthy();
+    expect(g.pending!.roll.grade).toBe("failure");
+    useGameStore.getState().useForbiddenExchange();
+    g = useGameStore.getState();
+    expect(g.pending!.roll.grade).toBe("success");
+    expect(g.state!.corruption).toBe(10);
+    useGameStore.getState().acceptOutcome();
+    vi.restoreAllMocks();
+    const o0 = useGameStore.getState().outcome;
+    if (o0?.nextSceneId) useGameStore.getState().gotoScene(o0.nextSceneId);
+    click("blackstreet_002_a");
+    // 地下：触摸龙卵（+5 腐化）+ 沟通（+10 腐化，bonded）
+    click("hub_underground");
+    vi.spyOn(Math, "random").mockReturnValue(0.99);
+    click("underground_001_c");
+    vi.restoreAllMocks();
+    vi.spyOn(Math, "random").mockReturnValue(0.99);
+    click("underground_002_b");
+    vi.restoreAllMocks();
+    // 腐化 = 10 + 5 + 10 = 25；地下后到 DAY2
+    click("hub_tavern_d2");
+    click("tavern_d2_001_c"); // 米蕾娜难民低语（信任 +5，echo）
+    click("tavern_d2_002_b"); // → d2_night
+    // 营地：个人事件 → rel2（+5 腐化）→ 契约（+10 腐化）
+    click("hub_camp_d2");
+    click("camp_night_milena");
+    click("milena_personal_001_a");
+    click("companion_event_end_a");
+    click("camp_night_milena_rel2");
+    click("milena_rel2_001_c");
+    click("companion_event_end_a");
+    click("camp_night_milena_contract");
+    click("milena_contract_001_a");
+    click("companion_event_end_a");
+    const sMid = useGameStore.getState().state!;
+    expect(sMid.companions.milena.contracted).toBe(true);
+    expect(sMid.corruption).toBeGreaterThanOrEqual(40);
+    // 休息 → Finale：腐化选项出现
+    click("camp_night_rest");
+    click("hub_finale");
+    const sFinale = useGameStore.getState().state!;
+    const finaleChoices = getAvailableChoices("finale_001", sFinale).map((c) => c.id);
+    expect(finaleChoices).toContain("finale_corruption_power");
+    click("finale_corruption_power");
+    click("ending_corruption_continue");
+    expect(useGameStore.getState().state!.currentSceneId).toBe("ending_screen");
+  });
 });
 
 /**
@@ -343,6 +411,94 @@ describe("通关模拟", () => {
     expect(final.secrets).toContain("egg_is_power_source");
     expect(final.companions.serena.trust).toBeGreaterThanOrEqual(20);
     expect(visited).toContain("ending_return_egg");
+  });
+
+  it("V0.4 E3：法师学院结局真实可达（无学院罪证时）", () => {
+    const s = makeState();
+    const path = [
+      "intro_001_a",
+      "intro_002_a",
+      "intro_003_a",
+      "intro_004_a",
+      "PUSH_TIME",
+      "hub_finale",
+      "finale_mage",
+      "ending_mage_continue",
+    ];
+    const { state: final, visited } = walk(s, path, { forceSuccess: true });
+    expect(visited).toContain("ending_mage");
+    expect(final.currentSceneId).toBe("ending_screen");
+  });
+
+  it("V0.4 E4：法师真相结局真实可达（地下取得罪证）", () => {
+    const s = makeState();
+    const path = [
+      "intro_001_c",
+      "intro_002_a",
+      "intro_003_a",
+      "intro_004_a",
+      // 黑街（地下线索）
+      "hub_blackstreet_d1",
+      "blackstreet_001_a",
+      "blackstreet_002_a",
+      // 地下：观察龙卵（knowledge/ancient 检定成功 → 取得学院罪证）
+      "hub_underground",
+      "underground_001_a",
+      "underground_002_a",
+      "PUSH_TIME",
+      "hub_finale",
+      "finale_mage_true",
+      "ending_mage_truth_continue",
+    ];
+    const { state: final, visited } = walk(s, path, { forceSuccess: true });
+    expect(final.secrets).toContain("mages_experimented_on_egg");
+    expect(visited).toContain("ending_mage_truth");
+    expect(final.currentSceneId).toBe("ending_screen");
+  });
+
+  it("V0.4 Phase3：Finale availability matrix（玩家可见选项）", () => {
+    // 无秘密玩家：royal + mage 可用；龙契/真相/归还/腐化不可用
+    const s1 = makeState();
+    const c1 = getAvailableChoices("finale_001", s1).map((c) => c.id);
+    expect(c1).toContain("finale_royal_hunt");
+    expect(c1).toContain("finale_mage");
+    expect(c1).not.toContain("finale_dragon_contract");
+    expect(c1).not.toContain("finale_mage_true");
+    expect(c1).not.toContain("finale_return_egg");
+    expect(c1).not.toContain("finale_corruption_power");
+
+    // 掌握学院罪证：真相选项出现，普通 mage 隐藏
+    const s2 = makeState();
+    s2.secrets = ["mages_experimented_on_egg"];
+    const c2 = getAvailableChoices("finale_001", s2).map((c) => c.id);
+    expect(c2).toContain("finale_mage_true");
+    expect(c2).not.toContain("finale_mage");
+
+    // 米蕾娜龙卵条件完整：龙契出现
+    const s3 = makeState();
+    s3.secrets = ["milena_connected_to_egg"];
+    s3.flags.bonded_with_egg = true;
+    s3.companions.milena.recruited = true;
+    s3.party = ["milena"];
+    const c3 = getAvailableChoices("finale_001", s3).map((c) => c.id);
+    expect(c3).toContain("finale_dragon_contract");
+
+    // 龙契已尝试（失败/放弃）：不再出现
+    const s4 = { ...s3, flags: { ...s3.flags, dragon_contract_attempted: true } };
+    const c4 = getAvailableChoices("finale_001", s4).map((c) => c.id);
+    expect(c4).not.toContain("finale_dragon_contract");
+
+    // 高腐化（40）：腐化选项出现
+    const s5 = makeState();
+    s5.corruption = 40;
+    const c5 = getAvailableChoices("finale_001", s5).map((c) => c.id);
+    expect(c5).toContain("finale_corruption_power");
+
+    // 低腐化（39）：腐化选项不出现
+    const s6 = makeState();
+    s6.corruption = 39;
+    const c6 = getAvailableChoices("finale_001", s6).map((c) => c.id);
+    expect(c6).not.toContain("finale_corruption_power");
   });
 
   it("Route A2：不做任何调查也能通关（默认王室路线）", () => {

@@ -415,7 +415,7 @@ export const companionEventsScenes: Scene[] = [
           effects: [
             { type: "contract", id: "milena" },
             { type: "setFlag", key: "milena_contracted_event", value: true },
-            { type: "corruption", amount: 5 },
+            { type: "corruption", amount: 10 },
           ],
           nextScene: "companion_event_end",
         },

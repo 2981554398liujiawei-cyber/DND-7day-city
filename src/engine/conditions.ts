@@ -28,6 +28,9 @@ export function checkCondition(
       }
       return !state.flags[cond.key];
     case "secret":
+      if (cond.value === false) {
+        return !state.secrets.includes(cond.key);
+      }
       return state.secrets.includes(cond.key);
     case "companionInParty":
       if (cond.value === false) {

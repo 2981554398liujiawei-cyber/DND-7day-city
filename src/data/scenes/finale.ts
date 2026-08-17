@@ -32,6 +32,7 @@ export const finaleScenes: Scene[] = [
         text: "将龙卵交给法师学院，换取他们对城市的掌控。",
         conditions: [
           { type: "flag", key: "mages_experimented_on_egg", value: false },
+          { type: "secret", key: "mages_experimented_on_egg", value: false },
         ],
         outcome: {
           nextScene: "ending_mage",

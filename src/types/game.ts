@@ -79,7 +79,7 @@ export interface CompanionDef {
 
 export type Condition =
   | { type: "flag"; key: string; value: boolean }
-  | { type: "secret"; key: string }
+  | { type: "secret"; key: string; value?: boolean }
   | { type: "companionInParty"; id: CompanionId; value?: boolean }
   | { type: "partyNotFull" }
   | { type: "personalQuestDone"; id: CompanionId; value?: boolean }
