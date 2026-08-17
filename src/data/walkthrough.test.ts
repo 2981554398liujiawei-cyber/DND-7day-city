@@ -313,6 +313,46 @@ describe("通关模拟", () => {
     expect(visited).toContain("ending_royal");
   });
 
+  it("Route B：莉娅路线 + 潜入为主 → 个人事件 + 第二关系事件 → 通关", () => {
+    const s = makeState();
+    const path = [
+      "intro_001_c",
+      "intro_002_b", // 认识莉娅
+      "intro_003_b", // 选莉娅同行
+      "intro_004_a", // 去黑街
+      // 黑街 DAY1：潜入窃听（stealth）
+      "hub_blackstreet_d1",
+      "blackstreet_001_b",
+      "blackstreet_002_a",
+      // 王城 DAY1：混入封锁线（stealth）
+      "hub_royal_d1",
+      "royal_001_b",
+      "royal_002_a",
+      // 夜晚营地：莉娅个人事件
+      "hub_camp_d1",
+      "camp_night_lia",
+      "lia_personal_001_a",
+      "companion_event_end_a",
+      // 第二关系事件
+      "camp_night_lia_rel2",
+      "lia_rel2_001_a",
+      "companion_event_end_a",
+      // 休息推进到 DAY2
+      "camp_night_rest",
+      // 推进到 finale
+      "PUSH_TIME",
+      "hub_finale",
+      "finale_royal_hunt",
+      "ending_royal_continue",
+    ];
+    const { state: final, visited } = walk(s, path, { forceSuccess: true });
+    expect(final.currentSceneId).toBe("ending_screen");
+    expect(final.companions.lia.personalQuestComplete).toBe(true);
+    expect(final.flags.lia_rel2_done).toBe(true);
+    // 至少经历过一次 stealth 检定（黑猫能力被使用）
+    expect(visited).toContain("ending_royal");
+  });
+
   it("Route C：偏米蕾娜 → 龙之契约（隐藏结局）", () => {
     const s = makeState();
     const path = [
