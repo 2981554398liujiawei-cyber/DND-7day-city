@@ -910,7 +910,172 @@ describe("通关模拟", () => {
     const { state: final } = walk(s, path, { forceSuccess: true });
     expect(final.flags.romance_serena).toBe(true);
     expect(final.flags.serena_bond_done).toBe(true);
+    expect(final.companions.serena.personalQuestComplete).toBe(true);
+    expect(final.flags.serena_rel2_done).toBe(true);
     expect(final.companions.serena.contracted).toBe(true);
+    expect(final.companions.serena.trust).toBeGreaterThanOrEqual(45);
+    expect(final.companions.serena.intimacy).toBeGreaterThanOrEqual(8);
+    expect(final.currentSceneId).toBe("ending_screen");
+  });
+
+  it("V0.4 Phase5：Lia Casual 路径（不深谈过去、只走主线）在契约窗口 cannot contract", () => {
+    const s = makeState();
+    const path = [
+      "intro_001_c",
+      "intro_002_b",
+      "intro_003_b",
+      "intro_004_a",
+      // 黑街：只做主线（不触发 lia_spy_history / 不选 002_c 深谈）
+      "hub_blackstreet_d1",
+      "blackstreet_001_b",
+      "blackstreet_002_a",
+      // 王城（主线，不做额外信任事件）
+      "hub_royal_d1",
+      "royal_001_b",
+      "royal_002_a",
+      // 夜晚营地：只做个人事件
+      "hub_camp_d1",
+      "camp_night_lia",
+      "lia_personal_001_a",
+      "companion_event_end_a",
+      "camp_night_rest",
+      // DAY2：酒馆只推进时间（不点莉娅对话 +5），rel2
+      "hub_tavern_d2",
+      "tavern_d2_001_e",
+      "tavern_d2_002_b",
+      "hub_camp_d2",
+      "camp_night_lia_rel2",
+      "lia_rel2_001_a",
+      "companion_event_end_a",
+      "STOP",
+    ];
+    const { state: final } = walk(s, path, { forceSuccess: true });
+    // 契约窗口：camp_night_lia_contract 不可见（纯主线信任 37 < 45）
+    final.currentSceneId = "camp_night";
+    const choices = getAvailableChoices("camp_night", final);
+    expect(choices.some((c) => c.id === "camp_night_lia_contract")).toBe(false);
+    expect(final.companions.lia.trust).toBeLessThan(45);
+    expect(final.companions.lia.contracted).toBe(false);
+    // focused 路线（V0.3-RC1 Route B：深谈 +10）已证明可达契约 → 保留 +10
+  });
+
+  it("V0.4 Phase8：Gold 真实消费（钱够出现并扣除，钱不足不出现）", () => {
+    // 钱足够（初始 50）：酒馆花 10 金币选项出现 → 消费成功
+    const s1 = makeState();
+    s1.currentSceneId = "tavern_001";
+    const c1 = getAvailableChoices("tavern_001", s1).map((c) => c.id);
+    expect(c1).toContain("tavern_001_d");
+    const r = resolveChoice(getScene("tavern_001").choices.find((c) => c.id === "tavern_001_d")!, s1);
+    expect(s1.gold).toBe(40);
+    expect(s1.flags.tavern_heard_rumors).toBe(true);
+    // 钱不足（0）：不出现
+    const s2 = makeState();
+    s2.currentSceneId = "tavern_001";
+    s2.gold = 0;
+    const c2 = getAvailableChoices("tavern_001", s2).map((c) => c.id);
+    expect(c2).not.toContain("tavern_001_d");
+    // 至少两个消费选择（D1 酒馆 + D2 酒馆 + D2 黑街 ×2）
+    const spenders = ALL_SCENES.flatMap((sc) =>
+      sc.choices
+        .filter((c) => c.conditions?.some((x) => x.type === "gold") && c.outcome?.effects?.some((e) => e.type === "gold" && e.amount < 0))
+        .map((c) => `${sc.id}:${c.id}`)
+    );
+    expect(spenders.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("V0.4 Phase8：自然剧情累积 alert ≥15 后 alertPenalty 检定 modifier -1", () => {
+    const s = makeState();
+    const path = [
+      "intro_001_c",
+      "intro_002_a",
+      "intro_003_a",
+      "intro_004_a",
+      "hub_blackstreet_d1",
+      "blackstreet_001_a",
+      "blackstreet_002_a",
+      "hub_royal_d1",
+      "royal_001_c",
+      "royal_002_a",
+      "hub_camp_d1",
+      "camp_night_rest",
+      // DAY2：危险检定全部强制失败 → 自然累积 alert（3+8+5+5=21）
+      "hub_royal_d2",
+      "FORCE_FAIL",
+      "royal_d2_001_b",
+      "FORCE_FAIL",
+      "royal_d2_danger_a",
+      "hub_blackstreet_d2",
+      "FORCE_FAIL",
+      "blackstreet_d2_001_b",
+      "FORCE_FAIL",
+      "blackstreet_d2_danger_a",
+      "STOP",
+    ];
+    const { state: final } = walk(s, path, { forceSuccess: true });
+    expect(final.alert).toBeGreaterThanOrEqual(15);
+    // 真实累积下，alertPenalty 检定 modifier -1
+    const stealth = getScene("blackstreet_d2_danger").choices.find((c) => c.id === "blackstreet_d2_danger_b")!;
+    vi.spyOn(Math, "random").mockReturnValue(0.001).mockReturnValue(0.001);
+    const r = gradeRollForChoice(stealth, final);
+    vi.restoreAllMocks();
+    expect(r.modifier).toBe(-1);
+  });
+
+  it("V0.4 Phase6：剧情中真实存在 combat / ancient / social 三类检定（供出身能力触发）", () => {
+    const collect = (tag: string) =>
+      ALL_SCENES.flatMap((sc) =>
+        sc.choices
+          .filter((c) => c.check?.tags.includes(tag))
+          .map((c) => `${sc.id}:${c.id}`)
+      );
+    const combat = collect("combat");
+    const ancient = collect("ancient");
+    const social = collect("social");
+    expect(combat.length, `combat checks: ${combat.join(", ")}`).toBeGreaterThan(0);
+    expect(ancient.length, `ancient checks: ${ancient.join(", ")}`).toBeGreaterThan(0);
+    expect(social.length, `social checks: ${social.join(", ")}`).toBeGreaterThan(0);
+  });
+
+  it("V0.4 Phase4：bond 保持距离 → bond_done 成立、romance 不成立、主线正常结束", () => {
+    const s = makeState();
+    const path = [
+      "intro_001_c",
+      "intro_002_a",
+      "intro_003_a",
+      "intro_004_b",
+      "hub_royal_d1",
+      "royal_001_c",
+      "royal_002_a",
+      "hub_blackstreet_d1",
+      "blackstreet_001_a",
+      "blackstreet_002_a",
+      "hub_camp_d1",
+      "camp_night_serena",
+      "serena_personal_001_a",
+      "companion_event_end_a",
+      "camp_night_rest",
+      "hub_tavern_d2",
+      "tavern_d2_001_e",
+      "tavern_d2_002_b",
+      "hub_camp_d2",
+      "camp_night_serena_rel2",
+      "serena_rel2_001_a",
+      "companion_event_end_a",
+      "camp_night_serena_contract",
+      "serena_contract_001_a",
+      "companion_event_end_a",
+      // bond 事件选 c：保持距离
+      "camp_night_serena_bond",
+      "serena_bond_001_c",
+      "companion_event_end_a",
+      "camp_night_rest",
+      "hub_finale",
+      "finale_return_egg",
+      "ending_return_egg_continue",
+    ];
+    const { state: final } = walk(s, path, { forceSuccess: true });
+    expect(final.flags.serena_bond_done).toBe(true);
+    expect(final.flags.romance_serena).toBeFalsy();
     expect(final.currentSceneId).toBe("ending_screen");
   });
 
@@ -936,9 +1101,14 @@ describe("通关模拟", () => {
     ];
     const { state: final } = walk(s, path, { forceSuccess: true });
     expect(final.currentSceneId).toBe("ending_screen");
-    // 未契约 → bond 选项本就不该出现；无 romance flag
+    // 未契约 → bond 选项本就不该出现；三个人的 romance flag 都不成立
     expect(final.flags.romance_serena).toBeFalsy();
     expect(final.flags.serena_bond_done).toBeFalsy();
+    expect(final.flags.romance_lia).toBeFalsy();
+    expect(final.flags.romance_milena).toBeFalsy();
+    expect(final.companions.serena.contracted).toBe(false);
+    expect(final.companions.lia.contracted).toBe(false);
+    expect(final.companions.milena.contracted).toBe(false);
   });
 
   it("V0.3 bond 选项：intimacy < 8 时契约后也不出现", () => {
