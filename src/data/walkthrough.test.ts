@@ -77,14 +77,19 @@ describe("store 集成流程", () => {
       if (guard > 10) throw new Error("pushToFinale 死循环");
       const st = useGameStore.getState().state!;
       const choices = getAvailableChoices(st.currentSceneId, st);
+      const isD2 = st.periodIndex >= PERIOD_ORDER.indexOf("d2_morning");
       if (st.currentSceneId === "location_hub") {
-        const t = choices.find((c) => c.id === "hub_tavern");
+        const t = choices.find((c) => c.id === (isD2 ? "hub_tavern_d2" : "hub_tavern_d1"));
         if (!t) throw new Error("hub 无酒馆选项，无法推进时间");
-        click("hub_tavern");
+        click(t.id);
       } else if (st.currentSceneId === "tavern_001") {
         click("tavern_001_c");
       } else if (st.currentSceneId === "tavern_002") {
         click("tavern_002_b");
+      } else if (st.currentSceneId === "tavern_d2_001") {
+        click("tavern_d2_001_e");
+      } else if (st.currentSceneId === "tavern_d2_002") {
+        click("tavern_d2_002_b");
       } else {
         throw new Error(`pushToFinale 意外场景 ${st.currentSceneId}`);
       }
@@ -187,17 +192,18 @@ function walk(
         pushGuard++;
         if (pushGuard > 20) throw new Error("PUSH_TIME 死循环");
         const hubChoices = getAvailableChoices(state.currentSceneId, state);
+        const isD2 = state.periodIndex >= PERIOD_ORDER.indexOf("d2_morning");
         if (state.currentSceneId === "location_hub") {
-          const t = hubChoices.find((c) => c.id === "hub_tavern");
-          if (!t) throw new Error("PUSH_TIME: hub 无酒馆选项");
+          const t = hubChoices.find((c) => c.id === (isD2 ? "hub_tavern_d2" : "hub_tavern_d1"));
+          if (!t) throw new Error(`PUSH_TIME: hub 无酒馆选项（${isD2 ? "d2" : "d1"}）`);
           const r = resolveChoice(t, state);
           state.currentSceneId = r.nextSceneId!;
-        } else if (state.currentSceneId === "tavern_001") {
-          const c = hubChoices.find((c) => c.id === "tavern_001_c")!;
+        } else if (state.currentSceneId === "tavern_001" || state.currentSceneId === "tavern_d2_001") {
+          const c = hubChoices.find((c) => c.id === "tavern_001_c") ?? hubChoices.find((c) => c.id === "tavern_d2_001_e")!;
           const r = resolveChoice(c, state);
           state.currentSceneId = r.nextSceneId!;
-        } else if (state.currentSceneId === "tavern_002") {
-          const c = hubChoices.find((c) => c.id === "tavern_002_b")!;
+        } else if (state.currentSceneId === "tavern_002" || state.currentSceneId === "tavern_d2_002") {
+          const c = hubChoices.find((c) => c.id === "tavern_002_b") ?? hubChoices.find((c) => c.id === "tavern_d2_002_b")!;
           const r = resolveChoice(c, state);
           state.currentSceneId = r.nextSceneId!;
         } else {

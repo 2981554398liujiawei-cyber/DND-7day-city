@@ -437,6 +437,34 @@ button {
   white-space: nowrap;
 }
 
+/* 调查进度 */
+.investigation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.88rem;
+  color: #9b8b72;
+}
+
+.investigation-list .done {
+  color: var(--gold);
+}
+
+.new-tag {
+  margin-left: 6px;
+  font-size: 0.72rem;
+  color: #d0865a;
+  border: 1px solid rgba(208, 134, 90, 0.4);
+  border-radius: 999px;
+  padding: 1px 6px;
+}
+
+.time-left {
+  margin: 4px 0 8px;
+  font-size: 0.82rem;
+  color: #d0865a;
+}
+
 /* 结算块 */
 .outcome-block {
   margin-top: 18px;

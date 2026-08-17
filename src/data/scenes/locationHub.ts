@@ -97,14 +97,25 @@ export const locationHubScenes: Scene[] = [
       },
       // ===== 酒馆（finale 时段不可再刷） =====
       {
-        id: "hub_tavern",
+        id: "hub_tavern_d1",
         text: "回灰鸦酒馆休整。",
         conditions: [
-          { type: "periodIn", in: ["d1_morning", "d1_afternoon", "d1_dusk", "d1_night", "d2_morning", "d2_afternoon", "d2_dusk", "d2_night"] },
+          { type: "periodIn", in: ["d1_morning", "d1_afternoon", "d1_dusk", "d1_night"] },
         ],
         outcome: {
           effects: [{ type: "setLocation", id: "tavern" }],
           nextScene: "tavern_001",
+        },
+      },
+      {
+        id: "hub_tavern_d2",
+        text: "回灰鸦酒馆——那里来了许多难民。",
+        conditions: [
+          { type: "periodIn", in: ["d2_morning", "d2_afternoon", "d2_dusk", "d2_night"] },
+        ],
+        outcome: {
+          effects: [{ type: "setLocation", id: "tavern" }],
+          nextScene: "tavern_d2_001",
         },
       },
       // ===== 夜晚营地 =====

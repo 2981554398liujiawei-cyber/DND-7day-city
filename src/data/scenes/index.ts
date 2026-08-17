@@ -1,6 +1,7 @@
 import type { Scene } from "../../types/game";
 import { introScenes } from "./intro";
 import { tavernScenes } from "./tavern";
+import { tavernD2Scenes } from "./tavernD2";
 import { blackStreetScenes } from "./blackStreet";
 import { blackStreetD2Scenes } from "./blackStreetD2";
 import { royalDistrictScenes } from "./royalDistrict";
@@ -16,6 +17,7 @@ import { finaleScenes } from "./finale";
 export const ALL_SCENES: Scene[] = [
   ...introScenes,
   ...tavernScenes,
+  ...tavernD2Scenes,
   ...blackStreetScenes,
   ...blackStreetD2Scenes,
   ...royalDistrictScenes,
