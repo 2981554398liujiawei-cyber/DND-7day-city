@@ -1,0 +1,7 @@
+{
+  "M1.Start(390px)": "PASS",
+  "M2.No-h-scroll(start)": "PASS",
+  "M3.Game(390px)": "PASS",
+  "M4.No-h-scroll(game)": "PASS",
+  "Console errors": "none"
+}
