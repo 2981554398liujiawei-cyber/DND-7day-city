@@ -329,6 +329,93 @@ describe("通关模拟", () => {
     expect(visited).toContain("ending_dragon_contract");
   });
 
+  it("契约可达：专注塞蕾娜 → 个人事件 → 第二关系事件 → 契约", () => {
+    const s = makeState();
+    const path = [
+      // intro
+      "intro_001_c",
+      "intro_002_a",
+      "intro_003_a", // 选塞蕾娜（+5 信任）
+      "intro_004_b", // 去王城区
+      // 王城 DAY1（+4+8 信任 → 27）
+      "hub_royal_d1",
+      "royal_001_c",
+      "royal_002_a",
+      // 黑街 DAY1（推进到 d1_night）
+      "hub_blackstreet_d1",
+      "blackstreet_001_a",
+      "blackstreet_002_a",
+      // 夜晚营地：个人事件（+10 → 37）
+      "hub_camp_d1",
+      "camp_night_serena",
+      "serena_personal_001_a",
+      "companion_event_end_a", // 回营地
+      "camp_night_serena_rel2", // 第二关系事件（+12 → 49）
+      "serena_rel2_001_a",
+      "companion_event_end_a", // 回营地
+      "camp_night_serena_contract", // 契约
+      "serena_contract_001_a",
+      "companion_event_end_a", // 回营地
+      // 休息推进时间
+      "camp_night_rest",
+      // 到 finale
+      "PUSH_TIME",
+      "hub_finale",
+      "finale_return_egg",
+      "ending_return_egg_continue",
+    ];
+    const { state: final } = walk(s, path, { forceSuccess: true });
+    expect(final.companions.serena.contracted).toBe(true);
+    expect(final.companions.serena.personalQuestComplete).toBe(true);
+    expect(final.flags.serena_rel2_done).toBe(true);
+    expect(final.companions.serena.trust).toBeGreaterThanOrEqual(45);
+    expect(final.currentSceneId).toBe("ending_screen");
+  });
+
+  it("契约不可达：低信任玩家在营地看不到契约选项", () => {
+    const s = makeState();
+    const path = [
+      "intro_001_c",
+      "intro_002_a",
+      "intro_003_a", // 选塞蕾娜（+5 → 15）
+      "intro_004_a", // 去黑街
+      // 黑街 DAY1（→ d1_dusk）
+      "hub_blackstreet_d1",
+      "blackstreet_001_a",
+      "blackstreet_002_a",
+      // 王城 DAY1（→ d1_night，信任只 +4 → 19）
+      "hub_royal_d1",
+      "royal_001_c",
+      "royal_002_b",
+      // 夜晚营地
+      "hub_camp_d1",
+    ];
+    // 走到 camp_night，然后手动检查可用选项
+    let sceneId = s.currentSceneId;
+    let idx = 0;
+    let guard = 0;
+    while (sceneId !== "camp_night") {
+      guard++;
+      if (guard > 50) throw new Error("不可达测试死循环");
+      const choices = getAvailableChoices(sceneId, s);
+      const wanted = path[idx];
+      const choice = choices.find((c) => c.id === wanted)!;
+      idx++;
+      if (choice.check) {
+        vi.spyOn(Math, "random").mockReturnValue(0.99);
+      }
+      const result = resolveChoice(choice, s);
+      vi.restoreAllMocks();
+      sceneId = result.nextSceneId!;
+      s.currentSceneId = sceneId;
+    }
+    const campChoices = getAvailableChoices("camp_night", s);
+    expect(campChoices.some((c) => c.id === "camp_night_serena_contract")).toBe(false);
+    expect(campChoices.some((c) => c.id === "camp_night_serena_rel2")).toBe(false);
+    // 个人事件仍可选
+    expect(campChoices.some((c) => c.id === "camp_night_serena")).toBe(true);
+  });
+
   it("所有场景（除结局中间态）都不是死路：至少有一个可选项或 nextScene 链", () => {
     // 对每个场景，检查 choices 非空（结局中间态除外，它们有 choices）
     for (const scene of ALL_SCENES) {

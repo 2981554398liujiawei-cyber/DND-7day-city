@@ -20,12 +20,23 @@ export const campScenes: Scene[] = [
         outcome: { nextScene: "serena_personal_001" },
       },
       {
+        id: "camp_night_serena_rel2",
+        text: "与塞蕾娜深谈——她看起来心事重重。",
+        conditions: [
+          { type: "companionInParty", id: "serena" },
+          { type: "personalQuestDone", id: "serena" },
+          { type: "flag", key: "serena_rel2_done", value: false },
+        ],
+        outcome: { nextScene: "serena_rel2_001" },
+      },
+      {
         id: "camp_night_serena_contract",
         text: "与塞蕾娜讨论契约之事。",
         conditions: [
           { type: "companionInParty", id: "serena" },
           { type: "personalQuestDone", id: "serena" },
-          { type: "trust", id: "serena", min: 60 },
+          { type: "flag", key: "serena_rel2_done", value: true },
+          { type: "trust", id: "serena", min: 45 },
           { type: "flag", key: "serena_contracted_event", value: false },
         ],
         outcome: { nextScene: "serena_contract_001" },
@@ -40,12 +51,23 @@ export const campScenes: Scene[] = [
         outcome: { nextScene: "lia_personal_001" },
       },
       {
+        id: "camp_night_lia_rel2",
+        text: "与莉娅深谈——她看起来心事重重。",
+        conditions: [
+          { type: "companionInParty", id: "lia" },
+          { type: "personalQuestDone", id: "lia" },
+          { type: "flag", key: "lia_rel2_done", value: false },
+        ],
+        outcome: { nextScene: "lia_rel2_001" },
+      },
+      {
         id: "camp_night_lia_contract",
         text: "与莉娅讨论契约之事。",
         conditions: [
           { type: "companionInParty", id: "lia" },
           { type: "personalQuestDone", id: "lia" },
-          { type: "trust", id: "lia", min: 60 },
+          { type: "flag", key: "lia_rel2_done", value: true },
+          { type: "trust", id: "lia", min: 45 },
           { type: "flag", key: "lia_contracted_event", value: false },
         ],
         outcome: { nextScene: "lia_contract_001" },
@@ -60,12 +82,23 @@ export const campScenes: Scene[] = [
         outcome: { nextScene: "milena_personal_001" },
       },
       {
+        id: "camp_night_milena_rel2",
+        text: "与米蕾娜深谈——她看起来心事重重。",
+        conditions: [
+          { type: "companionInParty", id: "milena" },
+          { type: "personalQuestDone", id: "milena" },
+          { type: "flag", key: "milena_rel2_done", value: false },
+        ],
+        outcome: { nextScene: "milena_rel2_001" },
+      },
+      {
         id: "camp_night_milena_contract",
         text: "与米蕾娜讨论契约之事。",
         conditions: [
           { type: "companionInParty", id: "milena" },
           { type: "personalQuestDone", id: "milena" },
-          { type: "trust", id: "milena", min: 60 },
+          { type: "flag", key: "milena_rel2_done", value: true },
+          { type: "trust", id: "milena", min: 45 },
           { type: "flag", key: "milena_contracted_event", value: false },
         ],
         outcome: { nextScene: "milena_contract_001" },

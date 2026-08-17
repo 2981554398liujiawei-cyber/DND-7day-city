@@ -160,6 +160,180 @@ export const companionEventsScenes: Scene[] = [
     ],
   },
 
+  // ============ 第二关系事件（"她决定成为什么人？"） ============
+  {
+    id: "serena_rel2_001",
+    title: "塞蕾娜 · 剑锋所向",
+    text: [
+      "第二天入夜，塞蕾娜独自站在城墙下，望着广场上那架崭新的屠龙械。骑士团刚刚送来一纸调令——明日龙临，她必须加入屠龙队，听命于王。",
+      "她攥着调令，指节发白：“他们要我杀龙。可我知道——龙只是来讨回它的孩子。我该听谁的？命令……还是我自己看到的真相？”她看向你，“换作你，你会怎么选？”",
+    ],
+    location: "royal",
+    conditions: [
+      { type: "personalQuestDone", id: "serena" },
+      { type: "companionInParty", id: "serena" },
+    ],
+    choices: [
+      {
+        id: "serena_rel2_001_a",
+        text: "告诉她：忠于你的本心，而不是命令。",
+        outcome: {
+          text: "塞蕾娜的眉头缓缓松开，仿佛卸下千斤重担：“……谢谢你。骑士团的剑该为谁而挥，我这一生都在寻找答案。今天，我找到了。”她把调令撕成两半，“明日，我不会站在屠龙队里。”",
+          effects: [
+            { type: "trust", id: "serena", amount: 12 },
+            { type: "intimacy", id: "serena", amount: 5 },
+            { type: "setFlag", key: "serena_rel2_done", value: true },
+            { type: "setFlag", key: "serena_chooses_own_path", value: true },
+          ],
+          nextScene: "companion_event_end",
+        },
+      },
+      {
+        id: "serena_rel2_001_b",
+        text: "告诉她：骑士的荣耀就是服从命令，先保全自己。",
+        outcome: {
+          text: "塞蕾娜低下头，很久没有说话。“……或许你说得对。荣耀、命令、王国——这些才是骑士该信的东西。”她收好调令，声音平静得发冷，“我会听命。”但你知道，有些东西在她心里熄灭了。",
+          effects: [
+            { type: "trust", id: "serena", amount: 6 },
+            { type: "setFlag", key: "serena_rel2_done", value: true },
+            { type: "setFlag", key: "serena_follows_order", value: true },
+          ],
+          nextScene: "companion_event_end",
+        },
+      },
+      {
+        id: "serena_rel2_001_c",
+        text: "告诉她：明日见机行事——明着听命，暗里自有打算。",
+        outcome: {
+          text: "塞蕾娜怔了怔，随即低笑一声：“……你这外乡人，比我想的狡猾。”她收好调令，“好。明面上听命，暗地里，你我见机行事。这把剑，先欠着骑士团的。”",
+          effects: [
+            { type: "trust", id: "serena", amount: 8 },
+            { type: "intimacy", id: "serena", amount: 3 },
+            { type: "setFlag", key: "serena_rel2_done", value: true },
+            { type: "setFlag", key: "serena_waits_and_sees", value: true },
+          ],
+          nextScene: "companion_event_end",
+        },
+      },
+    ],
+  },
+  {
+    id: "lia_rel2_001",
+    title: "莉娅 · 旧主的来信",
+    text: [
+      "夜里，一只信鸽落在酒馆窗台，腿上绑着一卷蜡封的信。莉娅拆开，脸色一点点冷下来。",
+      "“帝国情报机构找到我了。”她把信纸揉成一团，“他们说，只要我交出你掌握的地下情报，就恢复我的身份，让我回到帝国，享受一生的庇护。”她看向你，“……你猜，我该怎么回？”",
+    ],
+    location: "blackstreet",
+    conditions: [
+      { type: "personalQuestDone", id: "lia" },
+      { type: "companionInParty", id: "lia" },
+    ],
+    choices: [
+      {
+        id: "lia_rel2_001_a",
+        text: "告诉她：你自己决定，我尊重你的选择。",
+        outcome: {
+          text: "莉娅盯着你看了很久，忽然笑了，笑里带着罕见的柔软：“……我这一辈子，都在被人当工具使。你是第一个说‘你自己决定’的人。”她把信扔进烛火，“回什么回。帝国那帮人，见鬼去吧。”",
+          effects: [
+            { type: "trust", id: "lia", amount: 12 },
+            { type: "intimacy", id: "lia", amount: 5 },
+            { type: "setFlag", key: "lia_rel2_done", value: true },
+            { type: "setFlag", key: "lia_chooses_freedom", value: true },
+          ],
+          nextScene: "companion_event_end",
+        },
+      },
+      {
+        id: "lia_rel2_001_b",
+        text: "要求她拒绝帝国，留下来和我们一起。",
+        outcome: {
+          text: "莉娅的笑意淡了：“……你在命令我？”她沉默片刻，把信折好放进怀里，“我欠你一个人情，但决定权在我。帝国那边，我会拖着。至于留下——”她顿了顿，“看心情。”",
+          effects: [
+            { type: "trust", id: "lia", amount: 6 },
+            { type: "setFlag", key: "lia_rel2_done", value: true },
+            { type: "setFlag", key: "lia_stays_but_resentful", value: true },
+          ],
+          nextScene: "companion_event_end",
+        },
+      },
+      {
+        id: "lia_rel2_001_c",
+        text: "让她将计就计，假装答应帝国，反骗他们一份关键情报。",
+        outcome: {
+          text: "莉娅的眼睛亮起来：“……好主意。帝国那群蠢货，大概想不到我会反咬一口。”她连夜写了回信，假意投诚，换来一份帝国在城内的眼线名单，“这份名单，够我们明天用。”",
+          effects: [
+            { type: "trust", id: "lia", amount: 10 },
+            { type: "intimacy", id: "lia", amount: 4 },
+            { type: "addSecret", key: "lia_spy_history" },
+            { type: "setFlag", key: "lia_rel2_done", value: true },
+            { type: "setFlag", key: "lia_counter_espionage", value: true },
+          ],
+          nextScene: "companion_event_end",
+        },
+      },
+    ],
+  },
+  {
+    id: "milena_rel2_001",
+    title: "米蕾娜 · 共鸣之潮",
+    text: [
+      "深夜，米蕾娜忽然浑身发颤，指尖泛起不受控制的幽蓝光芒。地下深处传来一阵强烈的共鸣，她痛苦地按住心口。",
+      "“它……龙卵在呼唤我。”她艰难地说，“它想让我带它走，或者……和它融为一体。我不知道这力量会把我变成什么。”她抬头看你，眼里有恐惧，也有渴望，“你说，我该怎么办？”",
+    ],
+    location: "church",
+    conditions: [
+      { type: "personalQuestDone", id: "milena" },
+      { type: "companionInParty", id: "milena" },
+    ],
+    choices: [
+      {
+        id: "milena_rel2_001_a",
+        text: "让她压制这股力量，别让龙卵影响她的心智。",
+        outcome: {
+          text: "米蕾娜咬牙闭眼，用意志强行压住翻涌的魔力。蓝光渐渐熄灭，她大口喘着气，冷汗湿透衣衫：“……我压住了。谢谢你，至少现在，我还是我自己。”她虚弱地笑了笑，眼里却多了一分坚定。",
+          effects: [
+            { type: "trust", id: "milena", amount: 10 },
+            { type: "intimacy", id: "milena", amount: 4 },
+            { type: "setFlag", key: "milena_rel2_done", value: true },
+            { type: "setFlag", key: "milena_suppresses_power", value: true },
+          ],
+          nextScene: "companion_event_end",
+        },
+      },
+      {
+        id: "milena_rel2_001_b",
+        text: "让她试着理解这股力量，研究它与龙卵的关联。",
+        outcome: {
+          text: "米蕾娜静下心来，让魔力缓缓流淌过身体，与地下的共鸣对话。片刻后她睁开眼，瞳孔深处泛起一丝蓝光：“……我听见了。它在说，它是被偷走的孩子。它在等母亲。”她低声，“我需要弄清楚这件事。”",
+          effects: [
+            { type: "trust", id: "milena", amount: 8 },
+            { type: "intimacy", id: "milena", amount: 5 },
+            { type: "addSecret", key: "milena_connected_to_egg" },
+            { type: "setFlag", key: "milena_rel2_done", value: true },
+            { type: "setFlag", key: "milena_studies_power", value: true },
+          ],
+          nextScene: "companion_event_end",
+        },
+      },
+      {
+        id: "milena_rel2_001_c",
+        text: "让她接受力量，但约定一条底线：任何时候，都不许伤害无辜。",
+        outcome: {
+          text: "米蕾娜的指尖泛起幽蓝的光，却没有失控。她握住你的手，郑重地说：“好。我接受这份力量——但以你为证，我发誓，绝不让它伤及无辜。这是我和龙卵的约定，也是和你的约定。”",
+          effects: [
+            { type: "trust", id: "milena", amount: 12 },
+            { type: "intimacy", id: "milena", amount: 6 },
+            { type: "setFlag", key: "milena_rel2_done", value: true },
+            { type: "setFlag", key: "milena_accepts_with_boundary", value: true },
+            { type: "corruption", amount: 5 },
+          ],
+          nextScene: "companion_event_end",
+        },
+      },
+    ],
+  },
+
   // ============ 契约事件 ============
   {
     id: "serena_contract_001",
@@ -172,7 +346,8 @@ export const companionEventsScenes: Scene[] = [
     location: "tavern",
     conditions: [
       { type: "personalQuestDone", id: "serena" },
-      { type: "trust", id: "serena", min: 60 },
+      { type: "flag", key: "serena_rel2_done", value: true },
+      { type: "trust", id: "serena", min: 45 },
     ],
     choices: [
       {
@@ -200,7 +375,8 @@ export const companionEventsScenes: Scene[] = [
     location: "blackstreet",
     conditions: [
       { type: "personalQuestDone", id: "lia" },
-      { type: "trust", id: "lia", min: 60 },
+      { type: "flag", key: "lia_rel2_done", value: true },
+      { type: "trust", id: "lia", min: 45 },
     ],
     choices: [
       {
@@ -227,7 +403,8 @@ export const companionEventsScenes: Scene[] = [
     location: "church",
     conditions: [
       { type: "personalQuestDone", id: "milena" },
-      { type: "trust", id: "milena", min: 60 },
+      { type: "flag", key: "milena_rel2_done", value: true },
+      { type: "trust", id: "milena", min: 45 },
     ],
     choices: [
       {
@@ -263,12 +440,10 @@ export const companionEventsScenes: Scene[] = [
     choices: [
       {
         id: "companion_event_end_a",
-        text: "回到营地休息。",
+        text: "回到营地，继续安排这一夜。",
         outcome: {
-          effects: [
-            { type: "advanceTime" },
-            { type: "setScene", id: "location_hub" },
-          ],
+          text: "你回到营地。夜色还长，如果你愿意，还可以与其他人谈谈，或直接休息。",
+          effects: [{ type: "setScene", id: "camp_night" }],
         },
       },
     ],

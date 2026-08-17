@@ -109,6 +109,7 @@ export const introScenes: Scene[] = [
           text: "塞蕾娜点头，抱剑而立：“好。我信你能替平民做点事。王城区那边，我来想办法。”",
           effects: [
             { type: "recruit", id: "serena" },
+            { type: "trust", id: "serena", amount: 5 },
             { type: "setLocation", id: "tavern" },
             { type: "setFlag", key: "first_companion", value: true },
           ],
@@ -122,6 +123,7 @@ export const introScenes: Scene[] = [
           text: "莉娅把硬币抛给你，笑道：“成交。先说好，我只是暂时跟趟，随时可能走人。黑街的消息，我比你熟。”",
           effects: [
             { type: "recruit", id: "lia" },
+            { type: "trust", id: "lia", amount: 5 },
             { type: "setLocation", id: "tavern" },
             { type: "setFlag", key: "first_companion", value: true },
           ],
@@ -135,6 +137,7 @@ export const introScenes: Scene[] = [
           text: "米蕾娜松了一口气，露出一个极浅的笑容：“谢谢你愿意接受我。地下的事……我直觉那很重要。”",
           effects: [
             { type: "recruit", id: "milena" },
+            { type: "trust", id: "milena", amount: 5 },
             { type: "setLocation", id: "tavern" },
             { type: "setFlag", key: "first_companion", value: true },
           ],
