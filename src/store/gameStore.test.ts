@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { useGameStore } from "./gameStore";
 import type { Choice, StatKey, CheckTag } from "../types/game";
-import { ORIGINS } from "../data/companions";
 
 function makeChoice(tags: CheckTag[], stat: StatKey = "violence", modifier = 0): Choice {
   return {
